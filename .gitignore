@@ -4,6 +4,7 @@
 
 # Internal / private docs — never publish
 docs/PROJECT_PLAN.md
+docs/ENTERPRISE.md
 docs/internal/
 docs/pitch/
 docs/contracts/
