@@ -35,7 +35,17 @@ func (h *WhatsAppHandler) Verify(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusForbidden)
 }
 
-// GET /api/v1/threads
+// ListThreads godoc
+// @Summary      List WhatsApp threads
+// @Description  Returns paginated WhatsApp conversation threads with contact details.
+// @Tags         WhatsApp
+// @Produce      json
+// @Param        status  query     string  false  "Filter by status: open|pending|closed"
+// @Param        page    query     int     false  "Page number (default 1)"
+// @Param        limit   query     int     false  "Page size (default 20)"
+// @Success      200     {array}   domain.WhatsAppThread
+// @Security     BearerAuth
+// @Router       /threads [get]
 func (h *WhatsAppHandler) ListThreads(c *fiber.Ctx) error {
 	status := c.Query("status", "")
 	page, _ := strconv.Atoi(c.Query("page", "1"))
@@ -54,7 +64,17 @@ func (h *WhatsAppHandler) ListThreads(c *fiber.Ctx) error {
 	return c.JSON(threads)
 }
 
-// GET /api/v1/threads/:id/messages
+// GetMessages godoc
+// @Summary      Get thread messages
+// @Description  Returns messages for a WhatsApp thread, ordered by sent_at ascending.
+// @Tags         WhatsApp
+// @Produce      json
+// @Param        id     path      string  true   "Thread UUID"
+// @Param        limit  query     int     false  "Max messages to return (default 100)"
+// @Success      200    {array}   domain.WhatsAppMessage
+// @Failure      400    {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /threads/{id}/messages [get]
 func (h *WhatsAppHandler) GetMessages(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -69,7 +89,15 @@ func (h *WhatsAppHandler) GetMessages(c *fiber.Ctx) error {
 	return c.JSON(msgs)
 }
 
-// POST /api/v1/threads/:id/close
+// CloseThread godoc
+// @Summary      Close thread
+// @Description  Sets thread_status to closed.
+// @Tags         WhatsApp
+// @Param        id  path  string  true  "Thread UUID"
+// @Success      204
+// @Failure      400  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /threads/{id}/close [post]
 func (h *WhatsAppHandler) CloseThread(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {

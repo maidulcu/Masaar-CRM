@@ -26,7 +26,18 @@ func NewAuthHandler(users *repo.UserRepo, rdb *redis.Client, cfg *config.Config)
 	return &AuthHandler{users: users, redis: rdb, config: cfg}
 }
 
-// POST /api/v1/auth/login
+// Login godoc
+// @Summary      Login
+// @Description  Authenticate with email and password. Returns JWT access + refresh tokens.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      object{email=string,password=string}  true  "Credentials"
+// @Success      200   {object}  object{access_token=string,refresh_token=string,expires_in=int,user=object}
+// @Failure      400   {object}  object{error=string}
+// @Failure      401   {object}  object{error=string}
+// @Failure      429   {object}  object{error=string}  "Too many login attempts"
+// @Router       /auth/login [post]
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var body struct {
 		Email    string `json:"email"`
@@ -71,7 +82,17 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	})
 }
 
-// POST /api/v1/auth/refresh
+// Refresh godoc
+// @Summary      Refresh access token
+// @Description  Exchange a valid refresh token for a new access token.
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Param        body  body      object{refresh_token=string}  true  "Refresh token"
+// @Success      200   {object}  object{access_token=string,expires_in=int}
+// @Failure      400   {object}  object{error=string}
+// @Failure      401   {object}  object{error=string}
+// @Router       /auth/refresh [post]
 func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	var body struct {
 		RefreshToken string `json:"refresh_token"`
@@ -103,7 +124,15 @@ func (h *AuthHandler) Refresh(c *fiber.Ctx) error {
 	})
 }
 
-// DELETE /api/v1/auth/logout
+// Logout godoc
+// @Summary      Logout
+// @Description  Invalidate the current session. Blacklists the access token and deletes the refresh token from Redis.
+// @Tags         Auth
+// @Accept       json
+// @Param        body  body  object{refresh_token=string}  false  "Refresh token to invalidate"
+// @Success      204
+// @Security     BearerAuth
+// @Router       /auth/logout [delete]
 func (h *AuthHandler) Logout(c *fiber.Ctx) error {
 	var body struct {
 		RefreshToken string `json:"refresh_token"`

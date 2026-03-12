@@ -88,7 +88,17 @@ func (h *AIHandler) DraftReply(c *fiber.Ctx) error {
 	})
 }
 
-// POST /api/v1/ai/summarize/:thread_id
+// SummarizeThread godoc
+// @Summary      AI Summarize thread
+// @Description  Uses Ollama (local LLM) to generate a summary of the last 50 messages in a WhatsApp thread.
+// @Tags         AI
+// @Produce      json
+// @Param        thread_id  path      string  true  "Thread UUID"
+// @Success      200        {object}  object{summary=string}
+// @Failure      400        {object}  object{error=string}
+// @Failure      503        {object}  object{error=string}  "Ollama unavailable"
+// @Security     BearerAuth
+// @Router       /ai/summarize/{thread_id} [post]
 func (h *AIHandler) SummarizeThread(c *fiber.Ctx) error {
 	threadID, err := uuid.Parse(c.Params("thread_id"))
 	if err != nil {

@@ -16,7 +16,17 @@ func NewInvoiceHandler(invoices *repo.InvoiceRepo, deals *repo.DealRepo) *Invoic
 	return &InvoiceHandler{invoices: invoices, deals: deals}
 }
 
-// POST /api/v1/invoices
+// Create godoc
+// @Summary      Create VAT invoice
+// @Description  Generates a VAT invoice (5% UAE VAT) for a deal. Invoice number is auto-assigned as INV-YYYY-NNNN.
+// @Tags         Invoices
+// @Accept       json
+// @Produce      json
+// @Param        body  body      object{deal_id=string,subtotal=number}  true  "Invoice payload"
+// @Success      201   {object}  domain.VATInvoice
+// @Failure      400   {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /invoices [post]
 func (h *InvoiceHandler) Create(c *fiber.Ctx) error {
 	var body struct {
 		DealID   uuid.UUID `json:"deal_id"`
@@ -51,7 +61,16 @@ func (h *InvoiceHandler) Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(inv)
 }
 
-// GET /api/v1/invoices/:id
+// Get godoc
+// @Summary      Get invoice
+// @Tags         Invoices
+// @Produce      json
+// @Param        id  path      string  true  "Invoice UUID"
+// @Success      200  {object}  domain.VATInvoice
+// @Failure      400  {object}  object{error=string}
+// @Failure      404  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /invoices/{id} [get]
 func (h *InvoiceHandler) Get(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -64,7 +83,16 @@ func (h *InvoiceHandler) Get(c *fiber.Ctx) error {
 	return c.JSON(inv)
 }
 
-// POST /api/v1/invoices/:id/send
+// Send godoc
+// @Summary      Mark invoice as sent
+// @Description  Transitions the invoice status from draft → sent.
+// @Tags         Invoices
+// @Produce      json
+// @Param        id  path      string  true  "Invoice UUID"
+// @Success      200  {object}  object{id=string,status=string}
+// @Failure      400  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /invoices/{id}/send [post]
 func (h *InvoiceHandler) Send(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -76,7 +104,18 @@ func (h *InvoiceHandler) Send(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"id": id, "status": domain.InvoiceSent})
 }
 
-// PATCH /api/v1/invoices/:id/status
+// UpdateStatus godoc
+// @Summary      Update invoice status
+// @Description  Manually set invoice status to draft|sent|paid.
+// @Tags         Invoices
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string                   true  "Invoice UUID"
+// @Param        body  body      object{status=string}    true  "New status"
+// @Success      200   {object}  object{id=string,status=string}
+// @Failure      400   {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /invoices/{id}/status [patch]
 func (h *InvoiceHandler) UpdateStatus(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {

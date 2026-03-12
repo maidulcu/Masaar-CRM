@@ -6,10 +6,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	fiberws "github.com/gofiber/websocket/v2"
+	fiberswagger "github.com/swaggo/fiber-swagger"
 	"github.com/maidulcu/masaar-crm/internal/api/handler"
 	"github.com/maidulcu/masaar-crm/internal/api/middleware"
 	"github.com/maidulcu/masaar-crm/internal/config"
 	"github.com/maidulcu/masaar-crm/internal/ws"
+	_ "github.com/maidulcu/masaar-crm/docs" // swagger generated docs
 )
 
 type Handlers struct {
@@ -111,4 +113,7 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "ok"})
 	})
+
+	// Swagger UI — available in all envs; gate with BasicAuth in production if needed
+	app.Get("/docs/*", fiberswagger.WrapHandler)
 }

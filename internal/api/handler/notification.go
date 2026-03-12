@@ -25,7 +25,16 @@ func userIDFromCtx(c *fiber.Ctx) (uuid.UUID, bool) {
 	return id, err == nil
 }
 
-// GET /api/v1/notifications
+// List godoc
+// @Summary      List notifications
+// @Description  Returns the authenticated user's notifications, newest first.
+// @Tags         Notifications
+// @Produce      json
+// @Param        page   query     int  false  "Page (default 1)"
+// @Param        limit  query     int  false  "Page size (default 20)"
+// @Success      200    {array}   object{id=string,user_id=string,type=string,title=string,body=string,read=bool,data=string,created_at=string}
+// @Security     BearerAuth
+// @Router       /notifications [get]
 func (h *NotificationHandler) List(c *fiber.Ctx) error {
 	userID, ok := userIDFromCtx(c)
 	if !ok {
@@ -43,7 +52,15 @@ func (h *NotificationHandler) List(c *fiber.Ctx) error {
 	return c.JSON(notifications)
 }
 
-// PATCH /api/v1/notifications/:id/read
+// MarkRead godoc
+// @Summary      Mark notification read
+// @Description  Marks a notification as read. Validates ownership against the JWT subject.
+// @Tags         Notifications
+// @Param        id  path  string  true  "Notification UUID"
+// @Success      204
+// @Failure      400  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /notifications/{id}/read [patch]
 func (h *NotificationHandler) MarkRead(c *fiber.Ctx) error {
 	userID, ok := userIDFromCtx(c)
 	if !ok {

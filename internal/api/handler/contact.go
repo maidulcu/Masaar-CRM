@@ -17,7 +17,17 @@ func NewContactHandler(contacts *repo.ContactRepo) *ContactHandler {
 	return &ContactHandler{contacts: contacts}
 }
 
-// GET /api/v1/contacts
+// List godoc
+// @Summary      List contacts
+// @Description  Returns a paginated list of contacts. Supports keyword search on name, phone, and email.
+// @Tags         Contacts
+// @Produce      json
+// @Param        search  query     string  false  "Keyword search"
+// @Param        page    query     int     false  "Page number (default 1)"
+// @Param        limit   query     int     false  "Page size 1-100 (default 20)"
+// @Success      200     {object}  domain.PaginatedResult[domain.Contact]
+// @Security     BearerAuth
+// @Router       /contacts [get]
 func (h *ContactHandler) List(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "20"))
@@ -37,7 +47,17 @@ func (h *ContactHandler) List(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-// GET /api/v1/contacts/:id
+// Get godoc
+// @Summary      Get contact
+// @Description  Returns a single contact by UUID.
+// @Tags         Contacts
+// @Produce      json
+// @Param        id  path      string  true  "Contact UUID"
+// @Success      200  {object}  domain.Contact
+// @Failure      400  {object}  object{error=string}
+// @Failure      404  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /contacts/{id} [get]
 func (h *ContactHandler) Get(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -50,7 +70,17 @@ func (h *ContactHandler) Get(c *fiber.Ctx) error {
 	return c.JSON(contact)
 }
 
-// POST /api/v1/contacts
+// Create godoc
+// @Summary      Create contact
+// @Description  Creates a new contact. phone_wa and full_name are required.
+// @Tags         Contacts
+// @Accept       json
+// @Produce      json
+// @Param        body  body      domain.Contact  true  "Contact payload"
+// @Success      201   {object}  domain.Contact
+// @Failure      400   {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /contacts [post]
 func (h *ContactHandler) Create(c *fiber.Ctx) error {
 	var contact domain.Contact
 	if err := c.BodyParser(&contact); err != nil {
@@ -69,7 +99,19 @@ func (h *ContactHandler) Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(contact)
 }
 
-// PATCH /api/v1/contacts/:id
+// Update godoc
+// @Summary      Update contact
+// @Description  Partial update — only provided fields are changed.
+// @Tags         Contacts
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string          true  "Contact UUID"
+// @Param        body  body      domain.Contact  true  "Fields to update"
+// @Success      200   {object}  domain.Contact
+// @Failure      400   {object}  object{error=string}
+// @Failure      404   {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /contacts/{id} [patch]
 func (h *ContactHandler) Update(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -108,7 +150,15 @@ func (h *ContactHandler) Update(c *fiber.Ctx) error {
 	return c.JSON(existing)
 }
 
-// DELETE /api/v1/contacts/:id
+// Delete godoc
+// @Summary      Delete contact
+// @Description  Permanently deletes a contact. Requires admin role.
+// @Tags         Contacts
+// @Param        id  path  string  true  "Contact UUID"
+// @Success      204
+// @Failure      400  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /contacts/{id} [delete]
 func (h *ContactHandler) Delete(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {

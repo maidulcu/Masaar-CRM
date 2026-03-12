@@ -19,7 +19,16 @@ func NewDealHandler(deals *repo.DealRepo, invoices *repo.InvoiceRepo) *DealHandl
 	return &DealHandler{deals: deals, invoices: invoices}
 }
 
-// GET /api/v1/deals
+// List godoc
+// @Summary      List deals
+// @Description  Returns a paginated list of deals.
+// @Tags         Deals
+// @Produce      json
+// @Param        page   query     int  false  "Page (default 1)"
+// @Param        limit  query     int  false  "Page size (default 20)"
+// @Success      200    {object}  domain.PaginatedResult[domain.Deal]
+// @Security     BearerAuth
+// @Router       /deals [get]
 func (h *DealHandler) List(c *fiber.Ctx) error {
 	page, _ := strconv.Atoi(c.Query("page", "1"))
 	limit, _ := strconv.Atoi(c.Query("limit", "20"))
@@ -34,7 +43,17 @@ func (h *DealHandler) List(c *fiber.Ctx) error {
 	return c.JSON(result)
 }
 
-// GET /api/v1/deals/:id
+// Get godoc
+// @Summary      Get deal
+// @Description  Returns a single deal by UUID.
+// @Tags         Deals
+// @Produce      json
+// @Param        id  path      string  true  "Deal UUID"
+// @Success      200  {object}  domain.Deal
+// @Failure      400  {object}  object{error=string}
+// @Failure      404  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /deals/{id} [get]
 func (h *DealHandler) Get(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -47,7 +66,17 @@ func (h *DealHandler) Get(c *fiber.Ctx) error {
 	return c.JSON(deal)
 }
 
-// POST /api/v1/deals
+// Create godoc
+// @Summary      Create deal
+// @Description  Creates a deal linked to a lead. Owner is set automatically from the JWT subject.
+// @Tags         Deals
+// @Accept       json
+// @Produce      json
+// @Param        body  body      domain.Deal  true  "Deal payload (lead_id and title required)"
+// @Success      201   {object}  domain.Deal
+// @Failure      400   {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /deals [post]
 func (h *DealHandler) Create(c *fiber.Ctx) error {
 	var deal domain.Deal
 	if err := c.BodyParser(&deal); err != nil {
@@ -80,7 +109,18 @@ func (h *DealHandler) Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(deal)
 }
 
-// PATCH /api/v1/deals/:id/stage
+// UpdateStage godoc
+// @Summary      Update deal stage
+// @Description  Moves a deal to a new stage: open|won|lost.
+// @Tags         Deals
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string                  true  "Deal UUID"
+// @Param        body  body      object{stage=string}    true  "New stage"
+// @Success      200   {object}  object{id=string,stage=string}
+// @Failure      400   {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /deals/{id}/stage [patch]
 func (h *DealHandler) UpdateStage(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -98,7 +138,16 @@ func (h *DealHandler) UpdateStage(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"id": id, "stage": body.Stage})
 }
 
-// GET /api/v1/deals/:id/invoices
+// ListInvoices godoc
+// @Summary      List deal invoices
+// @Description  Returns all VAT invoices attached to a deal.
+// @Tags         Deals
+// @Produce      json
+// @Param        id  path      string  true  "Deal UUID"
+// @Success      200  {array}   domain.VATInvoice
+// @Failure      400  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /deals/{id}/invoices [get]
 func (h *DealHandler) ListInvoices(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {

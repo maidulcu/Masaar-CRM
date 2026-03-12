@@ -18,7 +18,14 @@ func NewLeadHandler(leads *repo.LeadRepo, contacts *repo.ContactRepo, hub *ws.Hu
 	return &LeadHandler{leads: leads, contacts: contacts, hub: hub}
 }
 
-// GET /api/v1/leads — returns kanban board grouped by stage
+// KanbanBoard godoc
+// @Summary      Get Kanban board
+// @Description  Returns all leads grouped by stage for the Kanban pipeline view.
+// @Tags         Leads
+// @Produce      json
+// @Success      200  {object}  object  "Map of stage → []Lead"
+// @Security     BearerAuth
+// @Router       /leads [get]
 func (h *LeadHandler) KanbanBoard(c *fiber.Ctx) error {
 	board, err := h.leads.KanbanBoard(c.Context())
 	if err != nil {
@@ -27,7 +34,17 @@ func (h *LeadHandler) KanbanBoard(c *fiber.Ctx) error {
 	return c.JSON(board)
 }
 
-// POST /api/v1/leads
+// Create godoc
+// @Summary      Create lead
+// @Description  Creates a new lead and broadcasts a lead.created WebSocket event.
+// @Tags         Leads
+// @Accept       json
+// @Produce      json
+// @Param        body  body      domain.Lead  true  "Lead payload (contact_id required)"
+// @Success      201   {object}  domain.Lead
+// @Failure      400   {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /leads [post]
 func (h *LeadHandler) Create(c *fiber.Ctx) error {
 	var lead domain.Lead
 	if err := c.BodyParser(&lead); err != nil {
@@ -55,7 +72,18 @@ func (h *LeadHandler) Create(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(lead)
 }
 
-// PATCH /api/v1/leads/:id/stage
+// UpdateStage godoc
+// @Summary      Move lead to stage
+// @Description  Updates the pipeline stage of a lead (drag-drop). Broadcasts lead.stage_changed event.
+// @Tags         Leads
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string                    true  "Lead UUID"
+// @Param        body  body      object{stage=string}      true  "New stage: new|contacted|qualified|proposal|won|lost"
+// @Success      200   {object}  object{lead_id=string,stage=string}
+// @Failure      400   {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /leads/{id}/stage [patch]
 func (h *LeadHandler) UpdateStage(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
@@ -84,7 +112,17 @@ func (h *LeadHandler) UpdateStage(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"lead_id": id, "stage": body.Stage})
 }
 
-// GET /api/v1/leads/:id
+// Get godoc
+// @Summary      Get lead
+// @Description  Returns a single lead with its contact joined.
+// @Tags         Leads
+// @Produce      json
+// @Param        id  path      string  true  "Lead UUID"
+// @Success      200  {object}  domain.Lead
+// @Failure      400  {object}  object{error=string}
+// @Failure      404  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /leads/{id} [get]
 func (h *LeadHandler) Get(c *fiber.Ctx) error {
 	id, err := uuid.Parse(c.Params("id"))
 	if err != nil {
