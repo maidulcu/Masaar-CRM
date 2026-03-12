@@ -1,0 +1,189 @@
+package domain
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+// ─── User ────────────────────────────────────────────────────────────────────
+
+type Role string
+
+const (
+	RoleAdmin  Role = "admin"
+	RoleAgent  Role = "agent"
+	RoleViewer Role = "viewer"
+)
+
+type User struct {
+	ID           uuid.UUID  `json:"id"`
+	Name         string     `json:"name"`
+	Email        string     `json:"email"`
+	PasswordHash string     `json:"-"`
+	Role         Role       `json:"role"`
+	LangPref     string     `json:"lang_pref"` // "ar" | "en"
+	WANumber     string     `json:"wa_number"`
+	CreatedAt    time.Time  `json:"created_at"`
+}
+
+// ─── Contact ─────────────────────────────────────────────────────────────────
+
+type Contact struct {
+	ID           uuid.UUID  `json:"id"`
+	PhoneWA      string     `json:"phone_wa"`
+	FullName     string     `json:"full_name"`
+	Email        string     `json:"email"`
+	Language     string     `json:"language"` // "ar" | "en"
+	LeadScore    int        `json:"lead_score"`
+	AssignedTo   *uuid.UUID `json:"assigned_to"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
+}
+
+// ─── Lead ─────────────────────────────────────────────────────────────────────
+
+type LeadStage string
+
+const (
+	StageNew       LeadStage = "new"
+	StageContacted LeadStage = "contacted"
+	StageQualified LeadStage = "qualified"
+	StageProposal  LeadStage = "proposal"
+	StageWon       LeadStage = "won"
+	StageLost      LeadStage = "lost"
+)
+
+type LeadSource string
+
+const (
+	SourceWhatsApp  LeadSource = "whatsapp"
+	SourceWeb       LeadSource = "web"
+	SourceReferral  LeadSource = "referral"
+	SourceEvent     LeadSource = "event"
+)
+
+type Lead struct {
+	ID         uuid.UUID  `json:"id"`
+	ContactID  uuid.UUID  `json:"contact_id"`
+	Stage      LeadStage  `json:"stage"`
+	Source     LeadSource `json:"source"`
+	DealValue  float64    `json:"deal_value"`
+	Currency   string     `json:"currency"` // default: AED
+	Notes      string     `json:"notes"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
+
+	// Joined
+	Contact *Contact `json:"contact,omitempty"`
+}
+
+// ─── WhatsApp ─────────────────────────────────────────────────────────────────
+
+type ThreadStatus string
+
+const (
+	ThreadOpen    ThreadStatus = "open"
+	ThreadClosed  ThreadStatus = "closed"
+	ThreadPending ThreadStatus = "pending"
+)
+
+type WhatsAppThread struct {
+	ID            uuid.UUID    `json:"id"`
+	ContactID     uuid.UUID    `json:"contact_id"`
+	WAAccountID   string       `json:"wa_account_id"`
+	ThreadStatus  ThreadStatus `json:"thread_status"`
+	LastMessageAt *time.Time   `json:"last_message_at"`
+	MessageCount  int          `json:"message_count"`
+	AISummary     string       `json:"ai_summary"`
+	CreatedAt     time.Time    `json:"created_at"`
+
+	// Joined
+	Contact  *Contact          `json:"contact,omitempty"`
+	Messages []WhatsAppMessage `json:"messages,omitempty"`
+}
+
+type MessageDirection string
+
+const (
+	DirectionInbound  MessageDirection = "inbound"
+	DirectionOutbound MessageDirection = "outbound"
+)
+
+type WhatsAppMessage struct {
+	ID          uuid.UUID        `json:"id"`
+	ThreadID    uuid.UUID        `json:"thread_id"`
+	Direction   MessageDirection `json:"direction"`
+	Body        string           `json:"body"`
+	MediaURL    string           `json:"media_url"`
+	WAMessageID string           `json:"wa_message_id"`
+	SentAt      time.Time        `json:"sent_at"`
+}
+
+// ─── Deal ─────────────────────────────────────────────────────────────────────
+
+type DealStage string
+
+const (
+	DealStageOpen   DealStage = "open"
+	DealStageWon    DealStage = "won"
+	DealStageLost   DealStage = "lost"
+)
+
+type Deal struct {
+	ID          uuid.UUID `json:"id"`
+	LeadID      uuid.UUID `json:"lead_id"`
+	Title       string    `json:"title"`
+	Stage       DealStage `json:"stage"`
+	Amount      float64   `json:"amount"`
+	Currency    string    `json:"currency"`
+	CloseDate   *time.Time `json:"close_date"`
+	Probability int       `json:"probability"`
+	OwnerID     uuid.UUID `json:"owner_id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+// ─── VAT Invoice ──────────────────────────────────────────────────────────────
+
+type InvoiceStatus string
+
+const (
+	InvoiceDraft InvoiceStatus = "draft"
+	InvoiceSent  InvoiceStatus = "sent"
+	InvoicePaid  InvoiceStatus = "paid"
+)
+
+type VATInvoice struct {
+	ID         uuid.UUID     `json:"id"`
+	DealID     uuid.UUID     `json:"deal_id"`
+	InvoiceNo  string        `json:"invoice_no"`
+	Subtotal   float64       `json:"subtotal"`
+	VATRate    float64       `json:"vat_rate"`
+	VATAmount  float64       `json:"vat_amount"`
+	Total      float64       `json:"total"`
+	QRPayload  string        `json:"qr_payload"`
+	Status     InvoiceStatus `json:"status"`
+	IssuedAt   time.Time     `json:"issued_at"`
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+
+type AuditLog struct {
+	ID         int64      `json:"id"`
+	EntityType string     `json:"entity_type"`
+	EntityID   uuid.UUID  `json:"entity_id"`
+	Action     string     `json:"action"`
+	ActorID    *uuid.UUID `json:"actor_id"`
+	Diff       any        `json:"diff"`
+	Timestamp  time.Time  `json:"ts"`
+}
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+type PaginatedResult[T any] struct {
+	Data  []T `json:"data"`
+	Total int `json:"total"`
+	Page  int `json:"page"`
+	Limit int `json:"limit"`
+}

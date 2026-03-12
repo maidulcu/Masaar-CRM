@@ -1,0 +1,129 @@
+package main
+
+import (
+	"context"
+	"database/sql"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/maidulcu/masaar-crm/internal/ai"
+	"github.com/maidulcu/masaar-crm/internal/api"
+	"github.com/maidulcu/masaar-crm/internal/api/handler"
+	"github.com/maidulcu/masaar-crm/internal/config"
+	"github.com/maidulcu/masaar-crm/internal/repo"
+	"github.com/maidulcu/masaar-crm/internal/ws"
+	"github.com/pressly/goose/v3"
+	"github.com/redis/go-redis/v9"
+)
+
+func main() {
+	cfg := config.Load()
+
+	// ── Database ─────────────────────────────────────────────────────────────
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pool, err := repo.NewPool(ctx, cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("database connection failed: %v", err)
+	}
+	defer pool.Close()
+
+	// ── Run migrations ───────────────────────────────────────────────────────
+	sqlDB, err := sql.Open("pgx", cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("open sql db: %v", err)
+	}
+	goose.SetBaseFS(os.DirFS("migrations"))
+	if err := goose.SetDialect("postgres"); err != nil {
+		log.Fatalf("goose dialect: %v", err)
+	}
+	if err := goose.Up(sqlDB, "."); err != nil {
+		log.Fatalf("goose up: %v", err)
+	}
+	sqlDB.Close()
+
+	// ── Redis ────────────────────────────────────────────────────────────────
+	redisOpts, err := redis.ParseURL(cfg.RedisURL)
+	if err != nil {
+		log.Fatalf("redis url: %v", err)
+	}
+	rdb := redis.NewClient(redisOpts)
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		log.Fatalf("redis ping: %v", err)
+	}
+	defer rdb.Close()
+
+	// ── Repositories ─────────────────────────────────────────────────────────
+	userRepo     := repo.NewUserRepo(pool)
+	contactRepo  := repo.NewContactRepo(pool)
+	leadRepo     := repo.NewLeadRepo(pool)
+	waRepo       := repo.NewWhatsAppRepo(pool)
+
+	// ── WebSocket hub ────────────────────────────────────────────────────────
+	hub := ws.NewHub()
+
+	// ── AI client ────────────────────────────────────────────────────────────
+	ollamaClient := ai.NewClient(cfg.OllamaBaseURL, cfg.OllamaModel)
+
+	// ── Handlers ─────────────────────────────────────────────────────────────
+	handlers := &api.Handlers{
+		Auth:     handler.NewAuthHandler(userRepo, rdb, cfg),
+		Contact:  handler.NewContactHandler(contactRepo),
+		Lead:     handler.NewLeadHandler(leadRepo, contactRepo, hub),
+		WhatsApp: handler.NewWhatsAppHandler(waRepo, contactRepo, hub, cfg),
+		AI:       handler.NewAIHandler(ollamaClient, contactRepo, leadRepo, waRepo),
+	}
+
+	// ── Fiber app ────────────────────────────────────────────────────────────
+	app := fiber.New(fiber.Config{
+		AppName:      "Masaar CRM",
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			return c.Status(code).JSON(fiber.Map{"error": err.Error()})
+		},
+	})
+
+	app.Use(recover.New())
+	app.Use(logger.New(logger.Config{
+		Format: "[${time}] ${status} ${method} ${path} ${latency}\n",
+	}))
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET,POST,PATCH,DELETE,OPTIONS",
+	}))
+
+	api.RegisterRoutes(app, handlers, hub, cfg)
+
+	// ── Graceful shutdown ────────────────────────────────────────────────────
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		log.Printf("Masaar CRM starting on :%s", cfg.Port)
+		if err := app.Listen(":" + cfg.Port); err != nil {
+			log.Printf("server stopped: %v", err)
+		}
+	}()
+
+	<-quit
+	log.Println("shutting down...")
+	if err := app.ShutdownWithTimeout(5 * time.Second); err != nil {
+		log.Printf("shutdown error: %v", err)
+	}
+	log.Println("bye")
+}
