@@ -20,6 +20,11 @@ const nav = [
     icon: '👥',
     label: { en: 'Contacts', ar: 'جهات الاتصال' },
   },
+  {
+    href: '/deals',
+    icon: '💼',
+    label: { en: 'Deals', ar: 'الصفقات' },
+  },
 ]
 
 export function Sidebar() {

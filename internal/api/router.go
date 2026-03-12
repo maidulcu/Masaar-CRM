@@ -16,6 +16,8 @@ type Handlers struct {
 	WhatsApp     *handler.WhatsAppHandler
 	AI           *handler.AIHandler
 	Notification *handler.NotificationHandler
+	Deal         *handler.DealHandler
+	Invoice      *handler.InvoiceHandler
 }
 
 func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config) {
@@ -70,6 +72,18 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 	// Notifications
 	v1.Get("/notifications", h.Notification.List)
 	v1.Patch("/notifications/:id/read", h.Notification.MarkRead)
+
+	// Deals
+	v1.Get("/deals", h.Deal.List)
+	v1.Post("/deals", h.Deal.Create)
+	v1.Patch("/deals/:id/stage", h.Deal.UpdateStage)
+	v1.Get("/deals/:id/invoices", h.Deal.ListInvoices)
+
+	// Invoices
+	v1.Post("/invoices", h.Invoice.Create)
+	v1.Get("/invoices/:id", h.Invoice.Get)
+	v1.Post("/invoices/:id/send", h.Invoice.Send)
+	v1.Patch("/invoices/:id/status", h.Invoice.UpdateStatus)
 
 	// Health
 	app.Get("/health", func(c *fiber.Ctx) error {

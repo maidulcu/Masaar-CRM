@@ -83,6 +83,36 @@ export interface WhatsAppMessage {
   sent_at: string
 }
 
+// ─── Deal ─────────────────────────────────────────────────────────────────────
+
+export type DealStage = 'open' | 'won' | 'lost'
+export type InvoiceStatus = 'draft' | 'sent' | 'paid'
+
+export interface Deal {
+  id: string
+  lead_id: string
+  title: string
+  stage: DealStage
+  amount: number
+  currency: string
+  close_date: string | null
+  probability: number
+  owner_id: string
+  created_at: string
+}
+
+export interface VATInvoice {
+  id: string
+  deal_id: string
+  invoice_no: string
+  subtotal: number
+  vat_rate: number
+  vat_amount: number
+  total: number
+  status: InvoiceStatus
+  issued_at: string
+}
+
 // ─── Notification ─────────────────────────────────────────────────────────────
 
 export interface Notification {

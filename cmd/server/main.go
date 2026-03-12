@@ -68,6 +68,8 @@ func main() {
 	leadRepo := repo.NewLeadRepo(pool)
 	waRepo := repo.NewWhatsAppRepo(pool)
 	notificationRepo := repo.NewNotificationRepo(pool)
+	dealRepo := repo.NewDealRepo(pool)
+	invoiceRepo := repo.NewInvoiceRepo(pool)
 
 	// ── WebSocket hub ────────────────────────────────────────────────────────
 	hub := ws.NewHub()
@@ -83,6 +85,8 @@ func main() {
 		WhatsApp:     handler.NewWhatsAppHandler(waRepo, contactRepo, hub, cfg),
 		AI:           handler.NewAIHandler(ollamaClient, contactRepo, leadRepo, waRepo),
 		Notification: handler.NewNotificationHandler(notificationRepo),
+		Deal:         handler.NewDealHandler(dealRepo, invoiceRepo),
+		Invoice:      handler.NewInvoiceHandler(invoiceRepo, dealRepo),
 	}
 
 	// ── Fiber app ────────────────────────────────────────────────────────────

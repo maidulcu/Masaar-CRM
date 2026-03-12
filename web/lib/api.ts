@@ -96,6 +96,41 @@ export const api = {
       request(`/api/v1/ai/summarize/${threadId}`, { method: 'POST' }),
   },
 
+  // ─── Deals ──────────────────────────────────────────────────────────────────
+
+  deals: {
+    list: (params: { page?: number; limit?: number } = {}) => {
+      const q = new URLSearchParams()
+      if (params.page) q.set('page', String(params.page))
+      if (params.limit) q.set('limit', String(params.limit))
+      return request(`/api/v1/deals?${q}`)
+    },
+    get: (id: string) => request(`/api/v1/deals/${id}`),
+    create: (data: unknown) =>
+      request('/api/v1/deals', { method: 'POST', body: JSON.stringify(data) }),
+    updateStage: (id: string, stage: string) =>
+      request(`/api/v1/deals/${id}/stage`, {
+        method: 'PATCH',
+        body: JSON.stringify({ stage }),
+      }),
+    invoices: (id: string) => request(`/api/v1/deals/${id}/invoices`),
+  },
+
+  // ─── Invoices ────────────────────────────────────────────────────────────────
+
+  invoices: {
+    create: (data: unknown) =>
+      request('/api/v1/invoices', { method: 'POST', body: JSON.stringify(data) }),
+    get: (id: string) => request(`/api/v1/invoices/${id}`),
+    send: (id: string) =>
+      request(`/api/v1/invoices/${id}/send`, { method: 'POST' }),
+    updateStatus: (id: string, status: string) =>
+      request(`/api/v1/invoices/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      }),
+  },
+
   // ─── Notifications ───────────────────────────────────────────────────────────
 
   notifications: {
