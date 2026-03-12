@@ -71,7 +71,8 @@ The app will be running at:
 |---------|-----|
 | Dashboard | http://localhost:3000 |
 | API | http://localhost:8080/api/v1 |
-| API Docs | http://localhost:8080/swagger |
+| API Docs (Swagger UI) | http://localhost:8080/docs |
+| OpenAPI Spec | `docs/swagger.yaml` |
 
 Default login: `admin@masaar.local` / `changeme`
 
