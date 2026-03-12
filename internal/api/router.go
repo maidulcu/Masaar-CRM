@@ -1,7 +1,10 @@
 package api
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	fiberws "github.com/gofiber/websocket/v2"
 	"github.com/maidulcu/masaar-crm/internal/api/handler"
 	"github.com/maidulcu/masaar-crm/internal/api/middleware"
@@ -20,14 +23,33 @@ type Handlers struct {
 	Invoice      *handler.InvoiceHandler
 }
 
+// webhookLimiter allows Meta's burst delivery (300 req/min per IP) while
+// blocking abuse. Meta retries on 429 so legitimate messages are never lost.
+var webhookLimiter = limiter.New(limiter.Config{
+	Max:        300,
+	Expiration: 1 * time.Minute,
+	LimitReached: func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{"error": "rate limit exceeded"})
+	},
+})
+
+// loginLimiter prevents brute-force on the auth endpoint.
+var loginLimiter = limiter.New(limiter.Config{
+	Max:        10,
+	Expiration: 1 * time.Minute,
+	LimitReached: func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{"error": "too many login attempts"})
+	},
+})
+
 func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config) {
 	// ── Public routes ────────────────────────────────────────────────────────
-	app.Post("/api/v1/auth/login", h.Auth.Login)
+	app.Post("/api/v1/auth/login", loginLimiter, h.Auth.Login)
 	app.Post("/api/v1/auth/refresh", h.Auth.Refresh)
 
 	// WhatsApp webhook — Meta calls this publicly
 	app.Get("/webhooks/whatsapp", h.WhatsApp.Verify)
-	app.Post("/webhooks/whatsapp", h.WhatsApp.Receive)
+	app.Post("/webhooks/whatsapp", webhookLimiter, h.WhatsApp.Receive)
 
 	// ── WebSocket — authenticated upgrade ────────────────────────────────────
 	app.Use("/ws", func(c *fiber.Ctx) error {

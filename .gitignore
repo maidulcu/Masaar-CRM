@@ -13,6 +13,7 @@ docs/contracts/
 .env
 .env.*
 !.env.example
+!web/.env.local.example
 *.pem
 *.key
 *.cert
