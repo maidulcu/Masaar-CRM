@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
+	"github.com/maidulcu/masaar-crm/internal/api/middleware"
 	"github.com/maidulcu/masaar-crm/internal/repo"
 )
 
@@ -14,8 +15,19 @@ func NewNotificationHandler(notifications *repo.NotificationRepo) *NotificationH
 	return &NotificationHandler{notifications: notifications}
 }
 
+func userIDFromCtx(c *fiber.Ctx) (uuid.UUID, bool) {
+	claims := middleware.ClaimsFromCtx(c)
+	sub, ok := claims["sub"].(string)
+	if !ok {
+		return uuid.Nil, false
+	}
+	id, err := uuid.Parse(sub)
+	return id, err == nil
+}
+
+// GET /api/v1/notifications
 func (h *NotificationHandler) List(c *fiber.Ctx) error {
-	userID, ok := c.Locals("user_id").(uuid.UUID)
+	userID, ok := userIDFromCtx(c)
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
 	}
@@ -31,8 +43,9 @@ func (h *NotificationHandler) List(c *fiber.Ctx) error {
 	return c.JSON(notifications)
 }
 
+// PATCH /api/v1/notifications/:id/read
 func (h *NotificationHandler) MarkRead(c *fiber.Ctx) error {
-	userID, ok := c.Locals("user_id").(uuid.UUID)
+	userID, ok := userIDFromCtx(c)
 	if !ok {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "unauthorized"})
 	}
