@@ -1,0 +1,67 @@
+# -----------------------------------------------
+# Masaar CRM — .gitignore
+# -----------------------------------------------
+
+# Internal / private docs — never publish
+docs/PROJECT_PLAN.md
+docs/internal/
+docs/pitch/
+docs/contracts/
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+secrets/
+
+# Go
+/bin/
+/dist/
+*.exe
+*.test
+*.out
+vendor/
+go.sum.bak
+
+# Air (Go live-reload)
+tmp/
+.air.toml.bak
+
+# Next.js / Node
+web/node_modules/
+web/.next/
+web/out/
+web/.env
+web/.env.local
+web/.env.production
+
+# Database
+*.sql.bak
+dump.sql
+pg_dump/
+
+# Docker
+docker/data/
+docker/volumes/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage.out
+coverage.html
