@@ -17,28 +17,28 @@ const (
 )
 
 type User struct {
-	ID           uuid.UUID  `json:"id"`
-	Name         string     `json:"name"`
-	Email        string     `json:"email"`
-	PasswordHash string     `json:"-"`
-	Role         Role       `json:"role"`
-	LangPref     string     `json:"lang_pref"` // "ar" | "en"
-	WANumber     string     `json:"wa_number"`
-	CreatedAt    time.Time  `json:"created_at"`
+	ID           uuid.UUID `json:"id"`
+	Name         string    `json:"name"`
+	Email        string    `json:"email"`
+	PasswordHash string    `json:"-"`
+	Role         Role      `json:"role"`
+	LangPref     string    `json:"lang_pref"` // "ar" | "en"
+	WANumber     string    `json:"wa_number"`
+	CreatedAt    time.Time `json:"created_at"`
 }
 
 // ─── Contact ─────────────────────────────────────────────────────────────────
 
 type Contact struct {
-	ID           uuid.UUID  `json:"id"`
-	PhoneWA      string     `json:"phone_wa"`
-	FullName     string     `json:"full_name"`
-	Email        string     `json:"email"`
-	Language     string     `json:"language"` // "ar" | "en"
-	LeadScore    int        `json:"lead_score"`
-	AssignedTo   *uuid.UUID `json:"assigned_to"`
-	CreatedAt    time.Time  `json:"created_at"`
-	UpdatedAt    time.Time  `json:"updated_at"`
+	ID         uuid.UUID  `json:"id"`
+	PhoneWA    string     `json:"phone_wa"`
+	FullName   string     `json:"full_name"`
+	Email      string     `json:"email"`
+	Language   string     `json:"language"` // "ar" | "en"
+	LeadScore  int        `json:"lead_score"`
+	AssignedTo *uuid.UUID `json:"assigned_to"`
+	CreatedAt  time.Time  `json:"created_at"`
+	UpdatedAt  time.Time  `json:"updated_at"`
 }
 
 // ─── Lead ─────────────────────────────────────────────────────────────────────
@@ -57,22 +57,22 @@ const (
 type LeadSource string
 
 const (
-	SourceWhatsApp  LeadSource = "whatsapp"
-	SourceWeb       LeadSource = "web"
-	SourceReferral  LeadSource = "referral"
-	SourceEvent     LeadSource = "event"
+	SourceWhatsApp LeadSource = "whatsapp"
+	SourceWeb      LeadSource = "web"
+	SourceReferral LeadSource = "referral"
+	SourceEvent    LeadSource = "event"
 )
 
 type Lead struct {
-	ID         uuid.UUID  `json:"id"`
-	ContactID  uuid.UUID  `json:"contact_id"`
-	Stage      LeadStage  `json:"stage"`
-	Source     LeadSource `json:"source"`
-	DealValue  float64    `json:"deal_value"`
-	Currency   string     `json:"currency"` // default: AED
-	Notes      string     `json:"notes"`
-	CreatedAt  time.Time  `json:"created_at"`
-	UpdatedAt  time.Time  `json:"updated_at"`
+	ID        uuid.UUID  `json:"id"`
+	ContactID uuid.UUID  `json:"contact_id"`
+	Stage     LeadStage  `json:"stage"`
+	Source    LeadSource `json:"source"`
+	DealValue float64    `json:"deal_value"`
+	Currency  string     `json:"currency"` // default: AED
+	Notes     string     `json:"notes"`
+	CreatedAt time.Time  `json:"created_at"`
+	UpdatedAt time.Time  `json:"updated_at"`
 
 	// Joined
 	Contact *Contact `json:"contact,omitempty"`
@@ -125,23 +125,23 @@ type WhatsAppMessage struct {
 type DealStage string
 
 const (
-	DealStageOpen   DealStage = "open"
-	DealStageWon    DealStage = "won"
-	DealStageLost   DealStage = "lost"
+	DealStageOpen DealStage = "open"
+	DealStageWon  DealStage = "won"
+	DealStageLost DealStage = "lost"
 )
 
 type Deal struct {
-	ID          uuid.UUID `json:"id"`
-	LeadID      uuid.UUID `json:"lead_id"`
-	Title       string    `json:"title"`
-	Stage       DealStage `json:"stage"`
-	Amount      float64   `json:"amount"`
-	Currency    string    `json:"currency"`
+	ID          uuid.UUID  `json:"id"`
+	LeadID      uuid.UUID  `json:"lead_id"`
+	Title       string     `json:"title"`
+	Stage       DealStage  `json:"stage"`
+	Amount      float64    `json:"amount"`
+	Currency    string     `json:"currency"`
 	CloseDate   *time.Time `json:"close_date"`
-	Probability int       `json:"probability"`
-	OwnerID     uuid.UUID `json:"owner_id"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	Probability int        `json:"probability"`
+	OwnerID     uuid.UUID  `json:"owner_id"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
 // ─── VAT Invoice ──────────────────────────────────────────────────────────────
@@ -155,16 +155,16 @@ const (
 )
 
 type VATInvoice struct {
-	ID         uuid.UUID     `json:"id"`
-	DealID     uuid.UUID     `json:"deal_id"`
-	InvoiceNo  string        `json:"invoice_no"`
-	Subtotal   float64       `json:"subtotal"`
-	VATRate    float64       `json:"vat_rate"`
-	VATAmount  float64       `json:"vat_amount"`
-	Total      float64       `json:"total"`
-	QRPayload  string        `json:"qr_payload"`
-	Status     InvoiceStatus `json:"status"`
-	IssuedAt   time.Time     `json:"issued_at"`
+	ID        uuid.UUID     `json:"id"`
+	DealID    uuid.UUID     `json:"deal_id"`
+	InvoiceNo string        `json:"invoice_no"`
+	Subtotal  float64       `json:"subtotal"`
+	VATRate   float64       `json:"vat_rate"`
+	VATAmount float64       `json:"vat_amount"`
+	Total     float64       `json:"total"`
+	QRPayload string        `json:"qr_payload"`
+	Status    InvoiceStatus `json:"status"`
+	IssuedAt  time.Time     `json:"issued_at"`
 }
 
 // ─── Audit Log ────────────────────────────────────────────────────────────────
@@ -186,4 +186,17 @@ type PaginatedResult[T any] struct {
 	Total int `json:"total"`
 	Page  int `json:"page"`
 	Limit int `json:"limit"`
+}
+
+// ─── Notification ────────────────────────────────────────────────────────────
+
+type Notification struct {
+	ID        uuid.UUID `json:"id"`
+	UserID    uuid.UUID `json:"user_id"`
+	Type      string    `json:"type"` // "lead_assigned", "lead_stage_change", "new_message"
+	Title     string    `json:"title"`
+	Body      string    `json:"body"`
+	Read      bool      `json:"read"`
+	Data      string    `json:"data,omitempty"` // JSON payload for navigation
+	CreatedAt time.Time `json:"created_at"`
 }

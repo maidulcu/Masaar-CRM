@@ -10,11 +10,12 @@ import (
 )
 
 type Handlers struct {
-	Auth      *handler.AuthHandler
-	Contact   *handler.ContactHandler
-	Lead      *handler.LeadHandler
-	WhatsApp  *handler.WhatsAppHandler
-	AI        *handler.AIHandler
+	Auth         *handler.AuthHandler
+	Contact      *handler.ContactHandler
+	Lead         *handler.LeadHandler
+	WhatsApp     *handler.WhatsAppHandler
+	AI           *handler.AIHandler
+	Notification *handler.NotificationHandler
 }
 
 func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config) {
@@ -33,7 +34,9 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 		}
 		return fiber.ErrUpgradeRequired
 	})
-	app.Get("/ws/warroom", middleware.JWT(cfg.JWTSecret), fiberws.New(hub.Handler()))
+
+	// Personal notifications
+	app.Get("/ws/notifications", middleware.JWT(cfg.JWTSecret), fiberws.New(hub.Handler()))
 
 	// ── Authenticated API ────────────────────────────────────────────────────
 	v1 := app.Group("/api/v1", middleware.JWT(cfg.JWTSecret))
@@ -61,10 +64,12 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 	v1.Get("/threads/:id/messages", h.WhatsApp.GetMessages)
 	v1.Post("/threads/:id/close", h.WhatsApp.CloseThread)
 
-	// AI
-	v1.Post("/ai/score-lead/:id", h.AI.ScoreLead)
-	v1.Post("/ai/draft-reply/:thread_id", h.AI.DraftReply)
+	// AI (manual)
 	v1.Post("/ai/summarize/:thread_id", h.AI.SummarizeThread)
+
+	// Notifications
+	v1.Get("/notifications", h.Notification.List)
+	v1.Patch("/notifications/:id/read", h.Notification.MarkRead)
 
 	// Health
 	app.Get("/health", func(c *fiber.Ctx) error {

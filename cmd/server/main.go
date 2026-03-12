@@ -63,10 +63,11 @@ func main() {
 	defer rdb.Close()
 
 	// ── Repositories ─────────────────────────────────────────────────────────
-	userRepo     := repo.NewUserRepo(pool)
-	contactRepo  := repo.NewContactRepo(pool)
-	leadRepo     := repo.NewLeadRepo(pool)
-	waRepo       := repo.NewWhatsAppRepo(pool)
+	userRepo := repo.NewUserRepo(pool)
+	contactRepo := repo.NewContactRepo(pool)
+	leadRepo := repo.NewLeadRepo(pool)
+	waRepo := repo.NewWhatsAppRepo(pool)
+	notificationRepo := repo.NewNotificationRepo(pool)
 
 	// ── WebSocket hub ────────────────────────────────────────────────────────
 	hub := ws.NewHub()
@@ -76,11 +77,12 @@ func main() {
 
 	// ── Handlers ─────────────────────────────────────────────────────────────
 	handlers := &api.Handlers{
-		Auth:     handler.NewAuthHandler(userRepo, rdb, cfg),
-		Contact:  handler.NewContactHandler(contactRepo),
-		Lead:     handler.NewLeadHandler(leadRepo, contactRepo, hub),
-		WhatsApp: handler.NewWhatsAppHandler(waRepo, contactRepo, hub, cfg),
-		AI:       handler.NewAIHandler(ollamaClient, contactRepo, leadRepo, waRepo),
+		Auth:         handler.NewAuthHandler(userRepo, rdb, cfg),
+		Contact:      handler.NewContactHandler(contactRepo),
+		Lead:         handler.NewLeadHandler(leadRepo, contactRepo, hub),
+		WhatsApp:     handler.NewWhatsAppHandler(waRepo, contactRepo, hub, cfg),
+		AI:           handler.NewAIHandler(ollamaClient, contactRepo, leadRepo, waRepo),
+		Notification: handler.NewNotificationHandler(notificationRepo),
 	}
 
 	// ── Fiber app ────────────────────────────────────────────────────────────

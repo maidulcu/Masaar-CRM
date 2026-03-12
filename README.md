@@ -36,27 +36,28 @@ Most CRMs were designed for Western markets and bolted on Arabic support as an a
 
 | Feature | Description |
 |---------|-------------|
-| **Sales Pipeline** | Kanban board with drag-drop stage management |
 | **WhatsApp Inbox** | Receive, read, and reply to WhatsApp threads in-app |
+| **Sales Pipeline** | Single Kanban board with drag-drop stage management |
+| **AI Summarize** | Manual "Summarize" button for threads and leads |
+| **VAT Invoicing** | Simple PDF invoice generator with 5% VAT |
+| **Notifications** | Personal real-time notifications |
+| **Keyword Search** | Standard keyword search for contacts and messages |
 | **Contact Management** | Unified contact profiles linked to WhatsApp identity |
-| **Lead Scoring** | AI-powered scoring via local Ollama LLMs |
-| **AI Draft Replies** | Context-aware message drafts in Arabic or English |
-| **Live War Room** | Real-time pipeline updates via WebSockets |
-| **VAT Invoicing** | Generate and send basic invoices (AED, 5% VAT) |
 | **Audit Log** | Immutable activity log for PDPL compliance |
 | **RTL / LTR** | Full Arabic interface, no layout hacks |
 | **Self-hosted** | Single Docker binary, runs anywhere |
 
-### Enterprise Add-ons
+### Enterprise (Proprietary — Contact for Pricing)
 
 | Feature | Description |
 |---------|-------------|
-| ZATCA Invoice Signing | UAE FTA e-invoicing with TLV QR codes |
-| Advanced AI Agents | Agentic follow-up workflows ("reply to all Burj Khalifa leads") |
-| Semantic Search | pgvector-powered contact and thread similarity search |
-| Multi-workspace | Manage multiple brands or teams from one instance |
-| SSO / SAML | Enterprise authentication for government and finance |
-| UAE Cloud Templates | One-click deploy configs for G42 and Moro Hub |
+| **WhatsApp Automation** | AI-powered chatbots & automated template messaging |
+| **Multiple Pipelines** | Multiple pipelines (Sales, HR, Ops, etc.) |
+| **AI Lead Scoring** | Automated AI lead scoring & auto-replies |
+| **ZATCA E-Invoicing** | UAE FTA compliant e-invoicing with QR & tax signing |
+| **War Room Dashboard** | Team live leaderboard with real-time updates |
+| **Emirates ID Integration** | Government ID verification & SSO/SAML |
+| **Semantic Search** | pgvector-powered similarity search |
 
 > **Enterprise enquiries:** [dynamicweblab.com](https://dynamicweblab.com) · hello@dynamicweblab.com
 
