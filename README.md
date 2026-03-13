@@ -140,9 +140,9 @@ masaar-crm/
 
 - [x] Architecture design and project planning
 - [x] **Week 1** — Core data layer, auth, WhatsApp webhook receiver
-- [ ] **Week 2** — Sales pipeline API, Kanban UI, notifications
-- [ ] **Week 3** — AI summarize, VAT invoicing
-- [ ] **Week 4** — RBAC, OpenAPI docs, Docker single-binary
+- [x] **Week 2** — Next.js frontend: Kanban pipeline, WhatsApp inbox, contacts, notifications
+- [x] **Week 3** — Deals management, VAT invoicing, full-stack Docker Compose
+- [x] **Week 4** — RBAC on all routes, OpenAPI/Swagger UI, rate limiting, v0.1.0 release
 
 ---
 

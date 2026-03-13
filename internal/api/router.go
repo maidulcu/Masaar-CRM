@@ -10,6 +10,7 @@ import (
 	"github.com/maidulcu/masaar-crm/internal/api/handler"
 	"github.com/maidulcu/masaar-crm/internal/api/middleware"
 	"github.com/maidulcu/masaar-crm/internal/config"
+	"github.com/maidulcu/masaar-crm/internal/domain"
 	"github.com/maidulcu/masaar-crm/internal/ws"
 	_ "github.com/maidulcu/masaar-crm/docs" // swagger generated docs
 )
@@ -69,45 +70,78 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 
 	v1.Delete("/auth/logout", h.Auth.Logout)
 
-	// Contacts
+	// Contacts — viewers: read-only; agents: create+update; admin: delete
 	v1.Get("/contacts", h.Contact.List)
-	v1.Post("/contacts", h.Contact.Create)
 	v1.Get("/contacts/:id", h.Contact.Get)
-	v1.Patch("/contacts/:id", h.Contact.Update)
+	v1.Post("/contacts",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.Contact.Create,
+	)
+	v1.Patch("/contacts/:id",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.Contact.Update,
+	)
 	v1.Delete("/contacts/:id",
-		middleware.RequireRole("admin"),
+		middleware.RequireRole(domain.RoleAdmin),
 		h.Contact.Delete,
 	)
 
-	// Leads / Pipeline
+	// Leads / Pipeline — viewers: read-only; agents: create+move; admin: all
 	v1.Get("/leads", h.Lead.KanbanBoard)
-	v1.Post("/leads", h.Lead.Create)
 	v1.Get("/leads/:id", h.Lead.Get)
-	v1.Patch("/leads/:id/stage", h.Lead.UpdateStage)
+	v1.Post("/leads",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.Lead.Create,
+	)
+	v1.Patch("/leads/:id/stage",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.Lead.UpdateStage,
+	)
 
-	// WhatsApp inbox
+	// WhatsApp inbox — all authenticated users read; agents+ can close
 	v1.Get("/threads", h.WhatsApp.ListThreads)
 	v1.Get("/threads/:id/messages", h.WhatsApp.GetMessages)
-	v1.Post("/threads/:id/close", h.WhatsApp.CloseThread)
+	v1.Post("/threads/:id/close",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.WhatsApp.CloseThread,
+	)
 
-	// AI (manual)
-	v1.Post("/ai/summarize/:thread_id", h.AI.SummarizeThread)
+	// AI (manual) — agents and admin only
+	v1.Post("/ai/summarize/:thread_id",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.AI.SummarizeThread,
+	)
 
-	// Notifications
+	// Notifications — personal; no role restriction beyond auth
 	v1.Get("/notifications", h.Notification.List)
 	v1.Patch("/notifications/:id/read", h.Notification.MarkRead)
 
-	// Deals
+	// Deals — viewers: read-only; agents: create+stage; admin: all
 	v1.Get("/deals", h.Deal.List)
-	v1.Post("/deals", h.Deal.Create)
-	v1.Patch("/deals/:id/stage", h.Deal.UpdateStage)
 	v1.Get("/deals/:id/invoices", h.Deal.ListInvoices)
+	v1.Post("/deals",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.Deal.Create,
+	)
+	v1.Patch("/deals/:id/stage",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.Deal.UpdateStage,
+	)
 
-	// Invoices
-	v1.Post("/invoices", h.Invoice.Create)
+	// Invoices — agents: create+view; admin: send+update status
 	v1.Get("/invoices/:id", h.Invoice.Get)
-	v1.Post("/invoices/:id/send", h.Invoice.Send)
-	v1.Patch("/invoices/:id/status", h.Invoice.UpdateStatus)
+	v1.Post("/invoices",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.Invoice.Create,
+	)
+	v1.Post("/invoices/:id/send",
+		middleware.RequireRole(domain.RoleAdmin),
+		h.Invoice.Send,
+	)
+	v1.Patch("/invoices/:id/status",
+		middleware.RequireRole(domain.RoleAdmin),
+		h.Invoice.UpdateStatus,
+	)
 
 	// Health
 	app.Get("/health", func(c *fiber.Ctx) error {
