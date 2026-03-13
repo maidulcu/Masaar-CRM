@@ -105,17 +105,29 @@ func (h *Hub) Handler() func(*fiberws.Conn) {
 			conn.Close()
 		}()
 
+		// done signals the write loop to stop. We never close c.send directly
+		// because sending to a closed channel panics even inside a select.
+		done := make(chan struct{})
+
 		go func() {
+			defer close(done)
 			for {
 				if _, _, err := conn.ReadMessage(); err != nil {
-					close(c.send)
 					return
 				}
 			}
 		}()
 
-		for msg := range c.send {
-			if err := conn.WriteMessage(fiberws.TextMessage, msg); err != nil {
+		for {
+			select {
+			case msg, ok := <-c.send:
+				if !ok {
+					return
+				}
+				if err := conn.WriteMessage(fiberws.TextMessage, msg); err != nil {
+					return
+				}
+			case <-done:
 				return
 			}
 		}

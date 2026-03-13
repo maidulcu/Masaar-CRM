@@ -73,11 +73,13 @@ func (h *AIHandler) DraftReply(c *fiber.Ctx) error {
 	contact, _ := h.contacts.GetByID(c.Context(), threads[0].ContactID)
 
 	lang := "en"
+	name := ""
 	if contact != nil {
 		lang = contact.Language
+		name = contact.FullName
 	}
 
-	draft, err := h.ollama.DraftReply(c.Context(), contact.FullName, lang, summary)
+	draft, err := h.ollama.DraftReply(c.Context(), name, lang, summary)
 	if err != nil {
 		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "AI service unavailable"})
 	}
