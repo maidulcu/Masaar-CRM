@@ -63,6 +63,14 @@ func (r *LeadRepo) Create(ctx context.Context, l *domain.Lead) error {
 	).Scan(&l.CreatedAt, &l.UpdatedAt)
 }
 
+func (r *LeadRepo) UpdateNotes(ctx context.Context, id uuid.UUID, notes string) error {
+	_, err := r.db.Exec(ctx,
+		`UPDATE leads SET notes=$1, updated_at=NOW() WHERE id=$2`,
+		notes, id,
+	)
+	return err
+}
+
 func (r *LeadRepo) UpdateStage(ctx context.Context, id uuid.UUID, stage domain.LeadStage) error {
 	_, err := r.db.Exec(ctx,
 		`UPDATE leads SET stage=$1, updated_at=NOW() WHERE id=$2`,

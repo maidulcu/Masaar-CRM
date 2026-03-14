@@ -103,6 +103,10 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
 		h.Lead.UpdateStage,
 	)
+	v1.Patch("/leads/:id/notes",
+		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
+		h.Lead.UpdateNotes,
+	)
 
 	// WhatsApp inbox — all authenticated users read; agents+ can close
 	v1.Get("/threads", h.WhatsApp.ListThreads)

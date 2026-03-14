@@ -72,6 +72,11 @@ export const api = {
         method: 'PATCH',
         body: JSON.stringify({ stage }),
       }),
+    updateNotes: (id: string, notes: string) =>
+      request(`/api/v1/leads/${id}/notes`, {
+        method: 'PATCH',
+        body: JSON.stringify({ notes }),
+      }),
   },
 
   // ─── WhatsApp ───────────────────────────────────────────────────────────────

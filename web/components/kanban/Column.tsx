@@ -18,9 +18,10 @@ const stageConfig: Record<LeadStage, { label: { en: string; ar: string }; color:
 interface Props {
   stage: LeadStage
   leads: Lead[]
+  onOpenLead?: (lead: Lead) => void
 }
 
-export function KanbanColumn({ stage, leads }: Props) {
+export function KanbanColumn({ stage, leads, onOpenLead }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: stage })
   const { lang, t } = useLang()
   const config = stageConfig[stage]
@@ -53,7 +54,7 @@ export function KanbanColumn({ stage, leads }: Props) {
       >
         <SortableContext items={leads.map((l) => l.id)} strategy={verticalListSortingStrategy}>
           {leads.map((lead) => (
-            <KanbanCard key={lead.id} lead={lead} />
+            <KanbanCard key={lead.id} lead={lead} onOpen={onOpenLead} />
           ))}
         </SortableContext>
 

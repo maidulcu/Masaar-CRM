@@ -112,6 +112,38 @@ func (h *LeadHandler) UpdateStage(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"lead_id": id, "stage": body.Stage})
 }
 
+// UpdateNotes godoc
+// @Summary      Update lead notes
+// @Description  Replaces the notes text on a lead. Agents and admins only.
+// @Tags         Leads
+// @Accept       json
+// @Produce      json
+// @Param        id    path      string               true  "Lead UUID"
+// @Param        body  body      object{notes=string} true  "Notes"
+// @Success      200   {object}  object{lead_id=string,notes=string}
+// @Failure      400   {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /leads/{id}/notes [patch]
+func (h *LeadHandler) UpdateNotes(c *fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+	}
+
+	var body struct {
+		Notes string `json:"notes"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	if err := h.leads.UpdateNotes(c.Context(), id, body.Notes); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"lead_id": id, "notes": body.Notes})
+}
+
 // Get godoc
 // @Summary      Get lead
 // @Description  Returns a single lead with its contact joined.

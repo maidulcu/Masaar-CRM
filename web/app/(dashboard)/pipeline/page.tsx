@@ -24,6 +24,45 @@ export default function PipelinePage() {
   const [submitError, setSubmitError] = useState('')
   const { t } = useLang()
 
+  // Lead detail / notes modal
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+  const [notes, setNotes] = useState('')
+  const [notesSaving, setNotesSaving] = useState(false)
+  const [notesSaved, setNotesSaved] = useState(false)
+  const [notesError, setNotesError] = useState('')
+
+  const handleOpenLead = (lead: Lead) => {
+    setSelectedLead(lead)
+    setNotes(lead.notes ?? '')
+    setNotesSaved(false)
+    setNotesError('')
+  }
+
+  const handleSaveNotes = async () => {
+    if (!selectedLead) return
+    setNotesSaving(true)
+    setNotesSaved(false)
+    setNotesError('')
+    try {
+      await api.leads.updateNotes(selectedLead.id, notes)
+      setBoard((prev) => {
+        const next = { ...prev }
+        for (const stage of Object.keys(next) as LeadStage[]) {
+          next[stage] = (next[stage] ?? []).map((l) =>
+            l.id === selectedLead.id ? { ...l, notes } : l
+          )
+        }
+        return next
+      })
+      setSelectedLead((prev) => prev ? { ...prev, notes } : null)
+      setNotesSaved(true)
+    } catch (err: unknown) {
+      setNotesError(err instanceof Error ? err.message : t('حدث خطأ', 'Something went wrong'))
+    } finally {
+      setNotesSaving(false)
+    }
+  }
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   )
@@ -163,6 +202,7 @@ export default function PipelinePage() {
                 key={stage}
                 stage={stage}
                 leads={board[stage] ?? []}
+                onOpenLead={handleOpenLead}
               />
             ))}
           </div>
@@ -238,6 +278,76 @@ export default function PipelinePage() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* Lead Detail / Notes Modal */}
+      <Modal
+        open={!!selectedLead}
+        onClose={() => setSelectedLead(null)}
+        title={selectedLead?.contact?.full_name ?? t('تفاصيل Lead', 'Lead Details')}
+      >
+        {selectedLead && (
+          <div className="space-y-4">
+            {/* Lead meta */}
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-400 mb-0.5">{t('المرحلة', 'Stage')}</p>
+                <p className="font-medium text-gray-800 capitalize">{selectedLead.stage}</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3">
+                <p className="text-xs text-gray-400 mb-0.5">{t('القيمة', 'Value')}</p>
+                <p className="font-medium text-gray-800">
+                  {selectedLead.currency} {selectedLead.deal_value.toLocaleString()}
+                </p>
+              </div>
+              {selectedLead.contact?.phone_wa && (
+                <div className="bg-gray-50 rounded-lg p-3 col-span-2">
+                  <p className="text-xs text-gray-400 mb-0.5">{t('واتساب', 'WhatsApp')}</p>
+                  <p className="font-medium text-gray-800">{selectedLead.contact.phone_wa}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Notes editor */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('الملاحظات', 'Notes')}
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => { setNotes(e.target.value); setNotesSaved(false) }}
+                rows={5}
+                placeholder={t('أضف ملاحظات حول هذا العميل المحتمل...', 'Add notes about this lead...')}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none"
+              />
+            </div>
+
+            {notesError && (
+              <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg">{notesError}</p>
+            )}
+            {notesSaved && (
+              <p className="text-xs text-green-600">{t('تم الحفظ', 'Saved')}</p>
+            )}
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setSelectedLead(null)}
+                className="flex-1 px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                {t('إغلاق', 'Close')}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveNotes}
+                disabled={notesSaving}
+                className="flex-1 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 disabled:opacity-60 transition-colors"
+              >
+                {notesSaving ? t('جاري الحفظ...', 'Saving...') : t('حفظ الملاحظات', 'Save Notes')}
+              </button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   )
