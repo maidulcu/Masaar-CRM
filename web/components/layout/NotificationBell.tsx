@@ -9,7 +9,7 @@ export function NotificationBell() {
   const user = useAuthStore((s) => s.user)
   const { notifications, unread, markRead } = useNotifications(user?.id ?? null)
   const [open, setOpen] = useState(false)
-  const { t } = useLang()
+  const { t, isRtl } = useLang()
 
   return (
     <div className="relative">
@@ -32,7 +32,10 @@ export function NotificationBell() {
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute end-0 top-10 z-20 w-80 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden">
+          <div className={clsx(
+            "absolute top-10 z-20 w-80 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden",
+            isRtl ? "start-0" : "end-0"
+          )}>
             <div className="px-4 py-3 border-b border-gray-100 font-semibold text-sm text-gray-700">
               {t('الإشعارات', 'Notifications')}
             </div>
@@ -47,8 +50,8 @@ export function NotificationBell() {
                     key={n.id}
                     onClick={() => markRead(n.id)}
                     className={clsx(
-                      'w-full text-start px-4 py-3 text-sm hover:bg-gray-50 transition-colors',
-                      !n.read && 'bg-blue-50'
+                      "w-full text-start px-4 py-3 text-sm hover:bg-gray-50 transition-colors",
+                      !n.read && "bg-blue-50"
                     )}
                   >
                     <p className="font-medium text-gray-800">{n.title}</p>

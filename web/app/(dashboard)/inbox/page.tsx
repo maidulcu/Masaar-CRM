@@ -65,8 +65,14 @@ export default function InboxPage() {
             {t('جاري التحميل...', 'Loading...')}
           </div>
         ) : threads.length === 0 ? (
-          <div className="flex items-center justify-center h-40 text-sm text-gray-400">
-            {t('لا توجد محادثات', 'No threads')}
+          <div className="flex flex-col items-center justify-center h-64 gap-3 text-center">
+            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+            </div>
+            <p className="text-sm text-gray-400">{t('لا توجد محادثات', 'No threads')}</p>
+            <p className="text-xs text-gray-300">{t('ستظهر المحادثات عند وصول رسائل واتساب', 'WhatsApp messages will appear here')}</p>
           </div>
         ) : (
           <ul className="divide-y divide-gray-50">

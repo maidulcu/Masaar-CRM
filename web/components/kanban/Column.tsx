@@ -22,7 +22,7 @@ interface Props {
 
 export function KanbanColumn({ stage, leads }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id: stage })
-  const { lang } = useLang()
+  const { lang, t } = useLang()
   const config = stageConfig[stage]
 
   const totalValue = leads.reduce((sum, l) => sum + l.deal_value, 0)
@@ -58,8 +58,8 @@ export function KanbanColumn({ stage, leads }: Props) {
         </SortableContext>
 
         {leads.length === 0 && (
-          <div className="flex items-center justify-center h-20 text-xs text-gray-300">
-            Drop here
+          <div className="flex items-center justify-center h-20 text-xs text-gray-400">
+            {t('أفلت هنا', 'Drop here')}
           </div>
         )}
       </div>

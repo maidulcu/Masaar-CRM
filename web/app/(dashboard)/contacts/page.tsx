@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Header } from '@/components/layout/Header'
 import { Modal, FormField, FormError } from '@/components/ui/Modal'
+import { Pagination } from '@/components/ui/Pagination'
 import { api } from '@/lib/api'
 import { useLang } from '@/context/LangContext'
 import type { Contact, PaginatedResult } from '@/types'
@@ -159,28 +160,11 @@ export default function ContactsPage() {
             </div>
           )}
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50"
-              >
-                {t('السابق', 'Previous')}
-              </button>
-              <span className="px-3 py-1.5 text-xs text-gray-500">
-                {page} / {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 disabled:opacity-40 hover:bg-gray-50"
-              >
-                {t('التالي', 'Next')}
-              </button>
-            </div>
-          )}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         </div>
       </div>
 
