@@ -18,6 +18,7 @@ import (
 type Handlers struct {
 	Auth         *handler.AuthHandler
 	User         *handler.UserHandler
+	Stats        *handler.StatsHandler
 	Contact      *handler.ContactHandler
 	Lead         *handler.LeadHandler
 	WhatsApp     *handler.WhatsAppHandler
@@ -70,6 +71,9 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 	v1 := app.Group("/api/v1", middleware.JWT(cfg.JWTSecret))
 
 	v1.Delete("/auth/logout", h.Auth.Logout)
+
+	// Dashboard stats — all authenticated users
+	v1.Get("/stats", h.Stats.Overview)
 
 	// User settings — personal; no role restriction beyond auth
 	v1.Get("/users/me", h.User.GetMe)

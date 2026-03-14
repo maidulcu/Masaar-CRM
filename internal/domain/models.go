@@ -200,3 +200,16 @@ type Notification struct {
 	Data      string    `json:"data,omitempty"` // JSON payload for navigation
 	CreatedAt time.Time `json:"created_at"`
 }
+
+// ─── Stats ────────────────────────────────────────────────────────────────────
+
+type Stats struct {
+	TotalContacts  int     `json:"total_contacts"`
+	ActiveLeads    int     `json:"active_leads"`
+	NewLeadsWeek   int     `json:"new_leads_week"`
+	OpenThreads    int     `json:"open_threads"`
+	OpenDeals      int     `json:"open_deals"`
+	OpenDealsValue float64 `json:"open_deals_value"`
+	WonDeals       int     `json:"won_deals"`
+	WonDealsValue  float64 `json:"won_deals_value"`
+}

@@ -70,6 +70,7 @@ func main() {
 	notificationRepo := repo.NewNotificationRepo(pool)
 	dealRepo := repo.NewDealRepo(pool)
 	invoiceRepo := repo.NewInvoiceRepo(pool)
+	statsRepo := repo.NewStatsRepo(pool)
 
 	// ── WebSocket hub ────────────────────────────────────────────────────────
 	hub := ws.NewHub()
@@ -81,6 +82,7 @@ func main() {
 	handlers := &api.Handlers{
 		Auth:         handler.NewAuthHandler(userRepo, rdb, cfg),
 		User:         handler.NewUserHandler(userRepo),
+		Stats:        handler.NewStatsHandler(statsRepo),
 		Contact:      handler.NewContactHandler(contactRepo),
 		Lead:         handler.NewLeadHandler(leadRepo, contactRepo, hub),
 		WhatsApp:     handler.NewWhatsAppHandler(waRepo, contactRepo, hub, cfg),
