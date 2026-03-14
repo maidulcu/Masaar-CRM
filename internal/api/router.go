@@ -131,6 +131,7 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 
 	// Invoices — agents: create+view; admin: send+update status
 	v1.Get("/invoices/:id", h.Invoice.Get)
+	v1.Get("/invoices/:id/pdf", h.Invoice.DownloadPDF)
 	v1.Post("/invoices",
 		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
 		h.Invoice.Create,

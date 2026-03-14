@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"fmt"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/maidulcu/masaar-crm/internal/domain"
+	"github.com/maidulcu/masaar-crm/internal/pdf"
 	"github.com/maidulcu/masaar-crm/internal/repo"
 )
 
@@ -131,4 +134,59 @@ func (h *InvoiceHandler) UpdateStatus(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(fiber.Map{"id": id, "status": body.Status})
+}
+
+// DownloadPDF godoc
+// @Summary      Download invoice as PDF
+// @Description  Generates and downloads a PDF version of the invoice.
+// @Tags         Invoices
+// @Produce      pdf
+// @Param        id  path  string  true  "Invoice UUID"
+// @Success      200  {file}  application/pdf
+// @Failure      400  {object}  object{error=string}
+// @Failure      404  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /invoices/{id}/pdf [get]
+func (h *InvoiceHandler) DownloadPDF(c *fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+	}
+
+	inv, err := h.invoices.GetByID(c.Context(), id)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "invoice not found"})
+	}
+
+	deal, err := h.deals.GetByID(c.Context(), inv.DealID)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "deal not found"})
+	}
+
+	companyName := "Masaar CRM"
+	companyAddr := "Dubai, United Arab Emirates"
+	companyVAT := "123456789"
+
+	pdfData := pdf.InvoiceData{
+		InvoiceNo:   inv.InvoiceNo,
+		IssuedAt:    inv.IssuedAt,
+		Subtotal:    inv.Subtotal,
+		VATRate:     inv.VATRate,
+		VATAmount:   inv.VATAmount,
+		Total:       inv.Total,
+		DealTitle:   deal.Title,
+		CompanyName: companyName,
+		CompanyAddr: companyAddr,
+		CompanyVAT:  companyVAT,
+	}
+
+	pdfBytes, err := pdf.GenerateInvoice(pdfData)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to generate PDF"})
+	}
+
+	filename := fmt.Sprintf("invoice-%s.pdf", inv.InvoiceNo)
+	c.Set("Content-Type", "application/pdf")
+	c.Set("Content-Disposition", "attachment; filename="+filename)
+	return c.Send(pdfBytes)
 }
