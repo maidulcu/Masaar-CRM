@@ -137,6 +137,22 @@ export const api = {
       }),
   },
 
+  // ─── User Settings ───────────────────────────────────────────────────────────
+
+  users: {
+    me: () => request('/api/v1/users/me'),
+    changePassword: (currentPassword: string, newPassword: string) =>
+      request('/api/v1/users/me/password', {
+        method: 'PATCH',
+        body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+      }),
+    updateLang: (lang: 'ar' | 'en') =>
+      request<{ lang_pref: string }>('/api/v1/users/me/lang', {
+        method: 'PATCH',
+        body: JSON.stringify({ lang }),
+      }),
+  },
+
   // ─── Notifications ───────────────────────────────────────────────────────────
 
   notifications: {

@@ -80,6 +80,7 @@ func main() {
 	// ── Handlers ─────────────────────────────────────────────────────────────
 	handlers := &api.Handlers{
 		Auth:         handler.NewAuthHandler(userRepo, rdb, cfg),
+		User:         handler.NewUserHandler(userRepo),
 		Contact:      handler.NewContactHandler(contactRepo),
 		Lead:         handler.NewLeadHandler(leadRepo, contactRepo, hub),
 		WhatsApp:     handler.NewWhatsAppHandler(waRepo, contactRepo, hub, cfg),

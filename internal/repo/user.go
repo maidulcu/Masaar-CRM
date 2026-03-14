@@ -63,3 +63,15 @@ func (r *UserRepo) Create(ctx context.Context, u *domain.User) error {
 		u.Role, u.LangPref, u.WANumber,
 	).Scan(&u.CreatedAt)
 }
+
+func (r *UserRepo) UpdatePassword(ctx context.Context, id uuid.UUID, passwordHash string) error {
+	const q = `UPDATE users SET password_hash = $1 WHERE id = $2`
+	_, err := r.db.Exec(ctx, q, passwordHash, id)
+	return err
+}
+
+func (r *UserRepo) UpdateLangPref(ctx context.Context, id uuid.UUID, lang string) error {
+	const q = `UPDATE users SET lang_pref = $1 WHERE id = $2`
+	_, err := r.db.Exec(ctx, q, lang, id)
+	return err
+}

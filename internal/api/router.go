@@ -17,6 +17,7 @@ import (
 
 type Handlers struct {
 	Auth         *handler.AuthHandler
+	User         *handler.UserHandler
 	Contact      *handler.ContactHandler
 	Lead         *handler.LeadHandler
 	WhatsApp     *handler.WhatsAppHandler
@@ -69,6 +70,11 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 	v1 := app.Group("/api/v1", middleware.JWT(cfg.JWTSecret))
 
 	v1.Delete("/auth/logout", h.Auth.Logout)
+
+	// User settings — personal; no role restriction beyond auth
+	v1.Get("/users/me", h.User.GetMe)
+	v1.Patch("/users/me/password", h.User.ChangePassword)
+	v1.Patch("/users/me/lang", h.User.UpdateLang)
 
 	// Contacts — viewers: read-only; agents: create+update; admin: delete
 	v1.Get("/contacts", h.Contact.List)
