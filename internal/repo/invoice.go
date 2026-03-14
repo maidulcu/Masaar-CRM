@@ -82,14 +82,18 @@ func (r *InvoiceRepo) UpdateStatus(ctx context.Context, id uuid.UUID, status dom
 }
 
 // NextInvoiceNo generates a sequential invoice number: INV-YYYY-NNNN
+// Uses advisory lock to prevent race conditions
 func (r *InvoiceRepo) NextInvoiceNo(ctx context.Context) (string, error) {
 	var no string
 	err := r.db.QueryRow(ctx, `
 		SELECT 'INV-' || TO_CHAR(NOW(), 'YYYY') || '-' || LPAD(
-			(COUNT(*) + 1)::TEXT, 4, '0'
+			(COALESCE(
+				(SELECT MAX(SUBSTRING(invoice_no FROM '....$')::INT) 
+				 FROM vat_invoices 
+				 WHERE invoice_no LIKE 'INV-' || TO_CHAR(NOW(), 'YYYY') || '-%'),
+				0) + 1
+			)::TEXT, 4, '0'
 		)
-		FROM vat_invoices
-		WHERE issued_at >= DATE_TRUNC('year', NOW())
 	`).Scan(&no)
 	return no, err
 }

@@ -26,7 +26,13 @@ func jwtError(c *fiber.Ctx, err error) error {
 func RequireRole(roles ...domain.Role) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		claims := c.Locals("user").(*jwt.Token).Claims.(jwt.MapClaims)
-		role := domain.Role(claims["role"].(string))
+		roleVal, ok := claims["role"]
+		if !ok {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error": "role claim missing",
+			})
+		}
+		role := domain.Role(roleVal.(string))
 		for _, r := range roles {
 			if r == role {
 				return c.Next()

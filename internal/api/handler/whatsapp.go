@@ -25,8 +25,8 @@ func NewWhatsAppHandler(wa *repo.WhatsAppRepo, contacts *repo.ContactRepo, hub *
 
 // GET /webhooks/whatsapp — Meta webhook verification
 func (h *WhatsAppHandler) Verify(c *fiber.Ctx) error {
-	mode      := c.Query("hub.mode")
-	token     := c.Query("hub.verify_token")
+	mode := c.Query("hub.mode")
+	token := c.Query("hub.verify_token")
 	challenge := c.Query("hub.challenge")
 
 	if mode == "subscribe" && token == h.config.WAVerifyToken {
@@ -135,6 +135,19 @@ func (h *WhatsAppHandler) Receive(c *fiber.Ctx) error {
 						Text      struct {
 							Body string `json:"body"`
 						} `json:"text"`
+						Image struct {
+							URL string `json:"url"`
+						} `json:"image"`
+						Video struct {
+							URL string `json:"url"`
+						} `json:"video"`
+						Audio struct {
+							URL string `json:"url"`
+						} `json:"audio"`
+						Document struct {
+							Filename string `json:"filename"`
+							URL      string `json:"url"`
+						} `json:"document"`
 					} `json:"messages"`
 				} `json:"value"`
 				Field string `json:"field"`
@@ -154,7 +167,37 @@ func (h *WhatsAppHandler) Receive(c *fiber.Ctx) error {
 			val := change.Value
 
 			for _, msg := range val.Messages {
-				if msg.Type != "text" {
+				msgBody := ""
+				mediaURL := ""
+
+				switch msg.Type {
+				case "text":
+					msgBody = msg.Text.Body
+				case "image":
+					if msg.Image.URL != "" {
+						msgBody = "[Image]"
+						mediaURL = msg.Image.URL
+					}
+				case "video":
+					if msg.Video.URL != "" {
+						msgBody = "[Video]"
+						mediaURL = msg.Video.URL
+					}
+				case "audio":
+					if msg.Audio.URL != "" {
+						msgBody = "[Audio]"
+						mediaURL = msg.Audio.URL
+					}
+				case "document":
+					if msg.Document.URL != "" {
+						msgBody = "[Document: " + msg.Document.Filename + "]"
+						mediaURL = msg.Document.URL
+					}
+				default:
+					msgBody = "[" + msg.Type + "]"
+				}
+
+				if msgBody == "" {
 					continue
 				}
 
@@ -181,7 +224,8 @@ func (h *WhatsAppHandler) Receive(c *fiber.Ctx) error {
 				waMsg := &domain.WhatsAppMessage{
 					ThreadID:    thread.ID,
 					Direction:   domain.DirectionInbound,
-					Body:        msg.Text.Body,
+					Body:        msgBody,
+					MediaURL:    mediaURL,
 					WAMessageID: msg.ID,
 				}
 				if err := h.wa.SaveMessage(c.Context(), waMsg); err != nil {
