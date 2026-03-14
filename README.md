@@ -1,10 +1,10 @@
 <div align="center">
 
-# Masaar CRM
+# Masaar CRM — Open-Source WhatsApp CRM for the UAE
 
-**The open-source CRM built for the UAE market.**
+**The self-hosted, Arabic-native CRM built for UAE businesses.**
 
-WhatsApp-first CRM · AI Summarize · Arabic-native · Self-hosted
+Close deals over WhatsApp · AI thread summaries · Full RTL Arabic UI · PDPL-compliant
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/github/v/release/dynamicweblab/masaar-crm)](https://github.com/dynamicweblab/masaar-crm/releases)
@@ -13,20 +13,21 @@ WhatsApp-first CRM · AI Summarize · Arabic-native · Self-hosted
 
 **Live Demo:** [masaar.dynamicweblab.com](https://masaar.dynamicweblab.com) &nbsp;·&nbsp; Built by [Dynamic Web Lab FZE LLC](https://dynamicweblab.com)
 
-[Features](#features) · [Quick Start](#quick-start) · [Architecture](#architecture) · [Roadmap](#roadmap) · [Contributing](#contributing)
+[Features](#features) · [Quick Start](#quick-start) · [Architecture](#architecture) · [API Reference](#api-reference) · [Contributing](#contributing)
 
 </div>
 
 ---
 
-## Why Masaar?
+## What is Masaar CRM?
 
-Most CRMs were designed for Western markets and bolted on Arabic support as an afterthought. Masaar is different — built ground-up for the UAE in 2026.
+Masaar is a **free, open-source CRM designed specifically for UAE businesses**. Most CRM software was built for Western markets with Arabic added as an afterthought. Masaar is different — WhatsApp-first, Arabic-native, and fully self-hosted so your customer data never leaves the UAE.
 
-- **WhatsApp is your pipeline.** In the UAE, deals close over WhatsApp. Masaar treats WhatsApp conversations as first-class data, not just an activity log.
-- **Your data stays in the UAE.** Ship a single compiled binary to your own server — Moro Hub, G42, or bare metal. No forced cloud, full PDPL compliance.
-- **AI that summarizes.** Manual "Summarize" button for threads — local LLMs via Ollama, your data never leaves your server.
-- **Arabic is not a toggle.** The entire dashboard — layout, logic, date formats — flips for Arabic users. RTL-native from day one.
+**Who is it for?**
+- UAE SMEs that close deals over WhatsApp
+- Sales teams that need a bilingual (Arabic/English) CRM
+- Businesses subject to UAE PDPL data residency requirements
+- Developers who want a self-hosted alternative to Salesforce, HubSpot, or Zoho
 
 ---
 
@@ -34,33 +35,33 @@ Most CRMs were designed for Western markets and bolted on Arabic support as an a
 
 | Feature | Description |
 |---------|-------------|
-| **Dashboard Overview** | Real-time stat cards: contacts, active leads, open threads, open deals, won revenue |
-| **WhatsApp Receiver** | Receive and read incoming WhatsApp messages |
-| **Sales Pipeline** | Kanban board with drag-drop stage management and inline lead notes |
-| **Lead Notes** | Click any pipeline card to view/edit per-lead notes without leaving the board |
-| **AI Summarize** | Manual "Summarize" button for threads |
-| **VAT Invoicing** | Simple PDF invoice generator with 5% VAT |
-| **Notifications** | Personal real-time notifications via WebSocket |
-| **Keyword Search** | Standard keyword search for contacts |
-| **Contact Management** | Unified contact profiles linked to WhatsApp |
-| **User Settings** | Change password (bcrypt-verified) and language preference per user |
-| **Audit Log** | Immutable activity log for PDPL compliance |
-| **RTL / LTR** | Full Arabic interface, persisted per user |
-| **Self-hosted** | Single Docker binary, runs anywhere |
+| **Dashboard Overview** | Real-time stats: total contacts, active leads, open WhatsApp threads, pipeline value, won revenue |
+| **WhatsApp Inbox** | Receive and manage inbound WhatsApp messages from Meta Cloud API |
+| **Sales Pipeline** | Kanban board with drag-and-drop stage management (New → Won/Lost) |
+| **Lead Notes** | Click any pipeline card to view and edit per-lead notes inline |
+| **AI Thread Summaries** | One-click AI summarization via local Ollama LLM — data never leaves your server |
+| **Deals & VAT Invoicing** | Deal tracking with PDF invoice generation including UAE 5% VAT |
+| **Contact Management** | Unified contact profiles linked to WhatsApp numbers and leads |
+| **User Settings** | Per-user password change and language preference (Arabic/English) |
+| **Role-Based Access** | Three roles: Admin, Agent, Viewer — enforced on every API route |
+| **Real-time Notifications** | Personal WebSocket-powered notifications |
+| **Full RTL Support** | Complete Arabic interface — layout, typography, and date direction |
+| **Audit Log** | Immutable activity log for UAE PDPL compliance |
+| **Self-Hosted** | Single Docker binary — deploy to Moro Hub, G42, or any UAE cloud |
 
 ---
 
 ## Live Demo
 
-A hosted demo is available at **[masaar.dynamicweblab.com](https://masaar.dynamicweblab.com)**.
+Try it at **[masaar.dynamicweblab.com](https://masaar.dynamicweblab.com)**
 
-> The demo resets every 24 hours. Do not enter real customer data.
+> Resets every 24 hours. Do not enter real customer data.
 
 ---
 
 ## Quick Start
 
-**Prerequisites:** Docker and Docker Compose installed.
+**Requirements:** Docker and Docker Compose.
 
 ```bash
 git clone https://github.com/dynamicweblab/masaar-crm.git
@@ -69,14 +70,11 @@ cp .env.example .env
 docker compose up
 ```
 
-The app will be running at:
-
 | Service | URL |
 |---------|-----|
 | Dashboard | http://localhost:3000 |
 | API | http://localhost:8080/api/v1 |
-| API Docs (Swagger UI) | http://localhost:8080/docs |
-| OpenAPI Spec | `docs/swagger.yaml` |
+| Swagger UI | http://localhost:8080/docs |
 
 Default login: `admin@masaar.local` / `changeme`
 
@@ -100,34 +98,55 @@ Default login: `admin@masaar.local` / `changeme`
 │  └──────────┘   └──────────┘   └──────────────────────┘│
 │                      │                                   │
 │                 ┌────▼─────┐                            │
-│                 │  WS Hub  │◀── Personal Notifications   │
+│                 │  WS Hub  │◀── Real-time Notifications  │
 │                 └──────────┘                            │
 └─────────────────────────────────────────────────────────┘
          ↑ Single Docker binary — no external dependencies
 ```
 
-**Stack:**
-
 | Layer | Technology |
 |-------|-----------|
 | Backend | Go 1.22 + [Fiber](https://gofiber.io) |
 | Frontend | Next.js 14 + Tailwind CSS |
-| Database | PostgreSQL 16 |
+| Database | PostgreSQL 16 + pgvector |
 | AI | [Ollama](https://ollama.ai) (llama3 / mistral) |
 | Real-time | WebSockets (native Fiber) |
-| Cache | Redis |
+| Cache / Sessions | Redis |
 | Migrations | [goose](https://github.com/pressly/goose) |
 | Auth | JWT (HS256) + bcrypt |
 
 ---
 
+## Project Structure
+
+```
+masaar-crm/
+├── cmd/server/          # Server entry point
+├── internal/
+│   ├── api/             # HTTP handlers and middleware
+│   ├── domain/          # Models and business types
+│   ├── repo/            # PostgreSQL repositories
+│   ├── ws/              # WebSocket hub
+│   └── ai/              # Ollama integration
+├── migrations/          # SQL schema (goose)
+├── web/
+│   ├── app/             # Next.js App Router pages
+│   ├── components/      # React UI components
+│   ├── store/           # Zustand state management
+│   ├── context/         # Language context (AR/EN)
+│   └── lib/             # API client, auth helpers
+└── docs/                # OpenAPI / Swagger spec
+```
+
+---
+
 ## API Reference
 
-All protected routes require `Authorization: Bearer <token>`.
+All protected routes require `Authorization: Bearer <token>`. Full interactive docs at `/docs`.
 
 | Method | Path | Description | Roles |
 |--------|------|-------------|-------|
-| `POST` | `/api/v1/auth/login` | Login, returns token pair | Public |
+| `POST` | `/api/v1/auth/login` | Authenticate, get token pair | Public |
 | `POST` | `/api/v1/auth/refresh` | Refresh access token | Public |
 | `DELETE` | `/api/v1/auth/logout` | Invalidate session | Auth |
 | `GET` | `/api/v1/stats` | Dashboard overview metrics | Auth |
@@ -149,49 +168,12 @@ All protected routes require `Authorization: Bearer <token>`.
 | `POST` | `/api/v1/deals` | Create deal | Agent, Admin |
 | `PATCH` | `/api/v1/deals/:id/stage` | Update deal stage | Agent, Admin |
 | `GET` | `/api/v1/invoices/:id` | Get invoice | Auth |
-| `POST` | `/api/v1/invoices` | Create invoice | Agent, Admin |
+| `POST` | `/api/v1/invoices` | Create VAT invoice | Agent, Admin |
 | `POST` | `/api/v1/invoices/:id/send` | Send invoice via WhatsApp | Admin |
 | `GET` | `/api/v1/notifications` | List notifications | Auth |
 | `PATCH` | `/api/v1/notifications/:id/read` | Mark notification read | Auth |
 | `POST` | `/api/v1/ai/summarize/:thread_id` | AI thread summary | Agent, Admin |
-| `GET` | `/ws/notifications` | Personal notification stream | Auth (WS) |
-
-Full interactive docs at `/docs` (Swagger UI).
-
----
-
-## Project Structure
-
-```
-masaar-crm/
-├── cmd/server/          # Main entry point
-├── internal/
-│   ├── api/             # Route handlers and middleware
-│   ├── domain/          # Models and business types
-│   ├── repo/            # Database repositories
-│   ├── ws/              # WebSocket hub
-│   └── ai/              # Ollama AI service
-├── migrations/          # SQL migrations (goose)
-├── web/
-│   ├── app/             # Next.js App Router pages
-│   ├── components/      # React UI components
-│   ├── store/           # Zustand state (auth)
-│   ├── context/         # Language context (AR/EN)
-│   └── lib/             # API client, auth helpers
-├── docker/              # Dockerfile + Compose
-└── docs/                # OpenAPI / Swagger spec
-```
-
----
-
-## Roadmap
-
-- [x] Architecture design and project planning
-- [x] **Week 1** — Core data layer, auth, WhatsApp webhook receiver
-- [x] **Week 2** — Next.js frontend: Kanban pipeline, WhatsApp inbox, contacts, notifications
-- [x] **Week 3** — Deals management, VAT invoicing, full-stack Docker Compose
-- [x] **Week 4** — RBAC on all routes, OpenAPI/Swagger UI, rate limiting, v0.1.0 release
-- [x] **Week 5** — User settings (change password, language), lead notes, dashboard stats overview
+| `GET` | `/ws/notifications` | Real-time notification stream | Auth (WS) |
 
 ---
 
@@ -214,25 +196,25 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a pull request.
 
 ## License
 
-Masaar is licensed under the [MIT License](LICENSE).
+Masaar CRM is licensed under the [MIT License](LICENSE). Free to use, modify, and self-host.
 
 ---
 
 ## Enterprise Edition
 
-Need more? The Enterprise edition adds:
+Need more for your UAE enterprise? The Enterprise edition adds:
 
 | Feature | Description |
 |---------|-------------|
-| **Multiple Pipelines** | Sales, HR, Ops — separate pipelines |
-| **ZATCA E-Invoicing** | UAE FTA compliant with QR & tax signing |
-| **AI Automation** | Auto lead scoring & auto-replies |
-| **WhatsApp Sender** | Send outbound messages & media |
-| **WhatsApp Bots** | AI-powered chatbots & template messaging |
+| **Multiple Pipelines** | Sales, HR, Ops — separate pipelines per team |
+| **ZATCA E-Invoicing** | UAE FTA compliant with QR code & tax signing |
+| **AI Automation** | Auto lead scoring and auto-replies |
+| **WhatsApp Sender** | Send outbound messages and media |
+| **WhatsApp Bots** | AI-powered chatbots and template messaging |
 | **War Room** | Team live leaderboard dashboard |
-| **Semantic Search** | AI-powered similarity search |
+| **Semantic Search** | AI-powered similarity search across conversations |
 | **SSO / SAML** | Enterprise authentication |
-| **Emirates ID** | Government ID verification |
+| **Emirates ID** | UAE government ID verification |
 
 **Contact:** [dynamicweblab.com](https://dynamicweblab.com) · info@dynamicweblab.com
 
@@ -241,6 +223,8 @@ Need more? The Enterprise edition adds:
 <div align="center">
 
 Built by [Dynamic Web Lab FZE LLC](https://dynamicweblab.com) &nbsp;·&nbsp; UAE 🇦🇪
+
+**Keywords:** open source CRM UAE · WhatsApp CRM · Arabic CRM software · self-hosted CRM · PDPL compliant CRM · CRM for UAE businesses · Go CRM · bilingual CRM Arabic English
 
 مصنوع بعناية للسوق الإماراتي
 
