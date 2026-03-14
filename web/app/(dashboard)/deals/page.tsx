@@ -26,10 +26,8 @@ export default function DealsPage() {
 
   useEffect(() => {
     api.deals.list({ limit: 50 }).then((res: any) => {
-      const list: Deal[] = Array.isArray(res)
-        ? res
-        : (res as PaginatedResult<Deal>)?.data ?? []
-      setDeals(list)
+      const data = res?.data ?? res
+      setDeals(Array.isArray(data) ? data : [])
     }).catch(() => setDeals([])).finally(() => setLoading(false))
   }, [])
 

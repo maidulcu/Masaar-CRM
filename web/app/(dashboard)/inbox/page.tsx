@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Header } from '@/components/layout/Header'
 import { api } from '@/lib/api'
 import { useLang } from '@/context/LangContext'
+import { useDebounce } from '@/hooks/useDebounce'
 import type { WhatsAppThread } from '@/types'
 import clsx from 'clsx'
 
@@ -26,12 +27,14 @@ export default function InboxPage() {
   const [loading, setLoading] = useState(true)
   const { lang, t } = useLang()
 
+  const debouncedStatus = useDebounce(status, 300)
+
   useEffect(() => {
     setLoading(true)
-    api.threads.list({ status, limit: 40 }).then((res: any) => {
+    api.threads.list({ status: debouncedStatus, limit: 40 }).then((res: any) => {
       setThreads(Array.isArray(res) ? res : [])
     }).catch(() => setThreads([])).finally(() => setLoading(false))
-  }, [status])
+  }, [debouncedStatus])
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">

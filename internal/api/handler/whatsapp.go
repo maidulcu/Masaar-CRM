@@ -109,6 +109,29 @@ func (h *WhatsAppHandler) CloseThread(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// GetThread godoc
+// @Summary      Get thread
+// @Description  Returns a single WhatsApp thread with contact details.
+// @Tags         WhatsApp
+// @Produce      json
+// @Param        id  path      string  true  "Thread UUID"
+// @Success      200  {object}  domain.WhatsAppThread
+// @Failure      400  {object}  object{error=string}
+// @Failure      404  {object}  object{error=string}
+// @Security     BearerAuth
+// @Router       /threads/{id} [get]
+func (h *WhatsAppHandler) GetThread(c *fiber.Ctx) error {
+	id, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
+	}
+	thread, err := h.wa.GetThread(c.Context(), id)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "thread not found"})
+	}
+	return c.JSON(thread)
+}
+
 // POST /webhooks/whatsapp — receive inbound messages
 func (h *WhatsAppHandler) Receive(c *fiber.Ctx) error {
 	var payload struct {

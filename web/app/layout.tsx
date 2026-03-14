@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { LangProvider } from '@/context/LangContext'
+import { ToastProvider } from '@/components/ui/Toast'
 
 export const metadata: Metadata = {
   title: 'Masaar CRM',
@@ -20,7 +21,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-gray-50 text-gray-900 antialiased">
         <LangProvider>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </LangProvider>
       </body>
     </html>

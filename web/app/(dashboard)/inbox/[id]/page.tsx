@@ -20,10 +20,7 @@ export default function ThreadPage() {
   useEffect(() => {
     if (!id) return
     Promise.all([
-      api.threads.list({ limit: 1 }).then((res: any) => {
-        const list: WhatsAppThread[] = Array.isArray(res) ? res : []
-        return list.find((t) => t.id === id) ?? null
-      }),
+      api.threads.get(id) as Promise<WhatsAppThread>,
       api.threads.messages(id) as Promise<WhatsAppMessage[]>,
     ]).then(([t, msgs]) => {
       setThread(t)

@@ -84,6 +84,7 @@ export const api = {
       if (params.limit) q.set('limit', String(params.limit))
       return request(`/api/v1/threads?${q}`)
     },
+    get: (id: string) => request(`/api/v1/threads/${id}`),
     messages: (id: string) => request(`/api/v1/threads/${id}/messages`),
     close: (id: string) =>
       request(`/api/v1/threads/${id}/close`, { method: 'POST' }),

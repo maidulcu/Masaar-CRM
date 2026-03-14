@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
 import { Header } from '@/components/layout/Header'
+import { Modal, FormField, FormError } from '@/components/ui/Modal'
 import { api } from '@/lib/api'
 import { useLang } from '@/context/LangContext'
 import type { Contact, PaginatedResult } from '@/types'
@@ -11,6 +12,9 @@ export default function ContactsPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const { lang, t } = useLang()
 
   const load = useCallback(async () => {
@@ -33,6 +37,30 @@ export default function ContactsPage() {
     load()
   }
 
+  const handleAddContact = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setSubmitError('')
+    setSubmitting(true)
+    
+    const formData = new FormData(e.currentTarget)
+    const data = {
+      phone_wa: formData.get('phone_wa'),
+      full_name: formData.get('full_name'),
+      email: formData.get('email') || undefined,
+      language: formData.get('language') || 'en',
+    }
+
+    try {
+      await api.contacts.create(data)
+      setShowAddModal(false)
+      load()
+    } catch (err: any) {
+      setSubmitError(err.message || t('حدث خطأ', 'Something went wrong'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const scoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600 bg-green-50'
     if (score >= 50) return 'text-yellow-700 bg-yellow-50'
@@ -50,22 +78,30 @@ export default function ContactsPage() {
       <div className="flex-1 overflow-auto">
         <div className="max-w-5xl mx-auto px-6 py-6">
 
-          {/* Search bar */}
-          <form onSubmit={handleSearch} className="flex gap-2 mb-6">
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('ابحث بالاسم أو الهاتف أو البريد...', 'Search by name, phone, or email...')}
-              className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-            />
+          {/* Search bar + Add button */}
+          <div className="flex gap-2 mb-6">
+            <form onSubmit={handleSearch} className="flex-1 flex gap-2">
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={t('ابحث بالاسم أو الهاتف أو البريد...', 'Search by name, phone, or email...')}
+                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors"
+              >
+                {t('بحث', 'Search')}
+              </button>
+            </form>
             <button
-              type="submit"
-              className="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors"
+              onClick={() => setShowAddModal(true)}
+              className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
             >
-              {t('بحث', 'Search')}
+              + {t('إضافة', 'Add')}
             </button>
-          </form>
+          </div>
 
           {/* Stats */}
           <p className="text-xs text-gray-400 mb-4">
@@ -147,6 +183,74 @@ export default function ContactsPage() {
           )}
         </div>
       </div>
+
+      {/* Add Contact Modal */}
+      <Modal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title={t('إضافة جهة اتصال', 'Add Contact')}
+      >
+        <form onSubmit={handleAddContact} className="space-y-4">
+          <FormField label={t('رقم الواتساب *', 'WhatsApp Number *')}>
+            <input
+              type="tel"
+              name="phone_wa"
+              required
+              placeholder={t('971501234567', '971501234567')}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            />
+          </FormField>
+          
+          <FormField label={t('الاسم الكامل *', 'Full Name *')}>
+            <input
+              type="text"
+              name="full_name"
+              required
+              placeholder={t('أدخل الاسم الكامل', 'Enter full name')}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            />
+          </FormField>
+          
+          <FormField label={t('البريد الإلكتروني', 'Email')}>
+            <input
+              type="email"
+              name="email"
+              placeholder={t('example@email.com', 'example@email.com')}
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            />
+          </FormField>
+          
+          <FormField label={t('اللغة', 'Language')}>
+            <select
+              name="language"
+              defaultValue="en"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            >
+              <option value="en">English</option>
+              <option value="ar">العربية</option>
+            </select>
+          </FormField>
+
+          {submitError && <FormError error={submitError} />}
+
+          <div className="flex gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setShowAddModal(false)}
+              className="flex-1 px-4 py-2 border border-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              {t('إلغاء', 'Cancel')}
+            </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-60"
+            >
+              {submitting ? t('جاري الإضافة...', 'Adding...') : t('إضافة', 'Add')}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   )
 }

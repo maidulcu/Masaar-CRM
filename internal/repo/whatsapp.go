@@ -133,3 +133,26 @@ func (r *WhatsAppRepo) CloseThread(ctx context.Context, threadID uuid.UUID) erro
 	)
 	return err
 }
+
+func (r *WhatsAppRepo) GetThread(ctx context.Context, threadID uuid.UUID) (*domain.WhatsAppThread, error) {
+	const q = `
+		SELECT t.id, t.contact_id, t.wa_account_id, t.thread_status,
+		       t.last_message_at, t.message_count, t.ai_summary, t.created_at,
+		       c.id, c.phone_wa, c.full_name, c.language
+		FROM whatsapp_threads t
+		JOIN contacts c ON c.id = t.contact_id
+		WHERE t.id = $1
+	`
+	t := &domain.WhatsAppThread{}
+	var c domain.Contact
+	err := r.db.QueryRow(ctx, q, threadID).Scan(
+		&t.ID, &t.ContactID, &t.WAAccountID, &t.ThreadStatus,
+		&t.LastMessageAt, &t.MessageCount, &t.AISummary, &t.CreatedAt,
+		&c.ID, &c.PhoneWA, &c.FullName, &c.Language,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("get thread: %w", err)
+	}
+	t.Contact = &c
+	return t, nil
+}

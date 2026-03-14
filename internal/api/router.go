@@ -6,13 +6,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	fiberws "github.com/gofiber/websocket/v2"
-	fiberswagger "github.com/swaggo/fiber-swagger"
+	_ "github.com/maidulcu/masaar-crm/docs" // swagger generated docs
 	"github.com/maidulcu/masaar-crm/internal/api/handler"
 	"github.com/maidulcu/masaar-crm/internal/api/middleware"
 	"github.com/maidulcu/masaar-crm/internal/config"
 	"github.com/maidulcu/masaar-crm/internal/domain"
 	"github.com/maidulcu/masaar-crm/internal/ws"
-	_ "github.com/maidulcu/masaar-crm/docs" // swagger generated docs
+	fiberswagger "github.com/swaggo/fiber-swagger"
 )
 
 type Handlers struct {
@@ -100,6 +100,7 @@ func RegisterRoutes(app *fiber.App, h *Handlers, hub *ws.Hub, cfg *config.Config
 
 	// WhatsApp inbox — all authenticated users read; agents+ can close
 	v1.Get("/threads", h.WhatsApp.ListThreads)
+	v1.Get("/threads/:id", h.WhatsApp.GetThread)
 	v1.Get("/threads/:id/messages", h.WhatsApp.GetMessages)
 	v1.Post("/threads/:id/close",
 		middleware.RequireRole(domain.RoleAdmin, domain.RoleAgent),
