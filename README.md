@@ -34,15 +34,18 @@ Most CRMs were designed for Western markets and bolted on Arabic support as an a
 
 | Feature | Description |
 |---------|-------------|
+| **Dashboard Overview** | Real-time stat cards: contacts, active leads, open threads, open deals, won revenue |
 | **WhatsApp Receiver** | Receive and read incoming WhatsApp messages |
-| **Sales Pipeline** | Single Kanban board with drag-drop stage management |
+| **Sales Pipeline** | Kanban board with drag-drop stage management and inline lead notes |
+| **Lead Notes** | Click any pipeline card to view/edit per-lead notes without leaving the board |
 | **AI Summarize** | Manual "Summarize" button for threads |
 | **VAT Invoicing** | Simple PDF invoice generator with 5% VAT |
-| **Notifications** | Personal real-time notifications |
+| **Notifications** | Personal real-time notifications via WebSocket |
 | **Keyword Search** | Standard keyword search for contacts |
 | **Contact Management** | Unified contact profiles linked to WhatsApp |
+| **User Settings** | Change password (bcrypt-verified) and language preference per user |
 | **Audit Log** | Immutable activity log for PDPL compliance |
-| **RTL / LTR** | Full Arabic interface |
+| **RTL / LTR** | Full Arabic interface, persisted per user |
 | **Self-hosted** | Single Docker binary, runs anywhere |
 
 ---
@@ -114,7 +117,46 @@ Default login: `admin@masaar.local` / `changeme`
 | Real-time | WebSockets (native Fiber) |
 | Cache | Redis |
 | Migrations | [goose](https://github.com/pressly/goose) |
-| Auth | JWT (RS256) |
+| Auth | JWT (HS256) + bcrypt |
+
+---
+
+## API Reference
+
+All protected routes require `Authorization: Bearer <token>`.
+
+| Method | Path | Description | Roles |
+|--------|------|-------------|-------|
+| `POST` | `/api/v1/auth/login` | Login, returns token pair | Public |
+| `POST` | `/api/v1/auth/refresh` | Refresh access token | Public |
+| `DELETE` | `/api/v1/auth/logout` | Invalidate session | Auth |
+| `GET` | `/api/v1/stats` | Dashboard overview metrics | Auth |
+| `GET` | `/api/v1/users/me` | Current user profile | Auth |
+| `PATCH` | `/api/v1/users/me/password` | Change password | Auth |
+| `PATCH` | `/api/v1/users/me/lang` | Update language preference | Auth |
+| `GET` | `/api/v1/contacts` | List contacts (search + paginate) | Auth |
+| `POST` | `/api/v1/contacts` | Create contact | Agent, Admin |
+| `PATCH` | `/api/v1/contacts/:id` | Update contact | Agent, Admin |
+| `DELETE` | `/api/v1/contacts/:id` | Delete contact | Admin |
+| `GET` | `/api/v1/leads` | Kanban board (all stages) | Auth |
+| `POST` | `/api/v1/leads` | Create lead | Agent, Admin |
+| `PATCH` | `/api/v1/leads/:id/stage` | Move lead to stage | Agent, Admin |
+| `PATCH` | `/api/v1/leads/:id/notes` | Update lead notes | Agent, Admin |
+| `GET` | `/api/v1/threads` | List WhatsApp threads | Auth |
+| `GET` | `/api/v1/threads/:id/messages` | Thread messages | Auth |
+| `POST` | `/api/v1/threads/:id/close` | Close thread | Agent, Admin |
+| `GET` | `/api/v1/deals` | List deals | Auth |
+| `POST` | `/api/v1/deals` | Create deal | Agent, Admin |
+| `PATCH` | `/api/v1/deals/:id/stage` | Update deal stage | Agent, Admin |
+| `GET` | `/api/v1/invoices/:id` | Get invoice | Auth |
+| `POST` | `/api/v1/invoices` | Create invoice | Agent, Admin |
+| `POST` | `/api/v1/invoices/:id/send` | Send invoice via WhatsApp | Admin |
+| `GET` | `/api/v1/notifications` | List notifications | Auth |
+| `PATCH` | `/api/v1/notifications/:id/read` | Mark notification read | Auth |
+| `POST` | `/api/v1/ai/summarize/:thread_id` | AI thread summary | Agent, Admin |
+| `GET` | `/ws/notifications` | Personal notification stream | Auth (WS) |
+
+Full interactive docs at `/docs` (Swagger UI).
 
 ---
 
@@ -124,14 +166,20 @@ Default login: `admin@masaar.local` / `changeme`
 masaar-crm/
 ├── cmd/server/          # Main entry point
 ├── internal/
-│   ├── api/             # Route handlers
-│   ├── domain/          # Business logic & entities
+│   ├── api/             # Route handlers and middleware
+│   ├── domain/          # Models and business types
 │   ├── repo/            # Database repositories
 │   ├── ws/              # WebSocket hub
 │   └── ai/              # Ollama AI service
-├── migrations/          # SQL migrations
+├── migrations/          # SQL migrations (goose)
+├── web/
+│   ├── app/             # Next.js App Router pages
+│   ├── components/      # React UI components
+│   ├── store/           # Zustand state (auth)
+│   ├── context/         # Language context (AR/EN)
+│   └── lib/             # API client, auth helpers
 ├── docker/              # Dockerfile + Compose
-└── docs/                # API documentation
+└── docs/                # OpenAPI / Swagger spec
 ```
 
 ---
@@ -143,6 +191,7 @@ masaar-crm/
 - [x] **Week 2** — Next.js frontend: Kanban pipeline, WhatsApp inbox, contacts, notifications
 - [x] **Week 3** — Deals management, VAT invoicing, full-stack Docker Compose
 - [x] **Week 4** — RBAC on all routes, OpenAPI/Swagger UI, rate limiting, v0.1.0 release
+- [x] **Week 5** — User settings (change password, language), lead notes, dashboard stats overview
 
 ---
 
